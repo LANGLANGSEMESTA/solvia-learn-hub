@@ -15,6 +15,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -421,6 +423,29 @@ function Pricing() {
 function Waitlist() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || loading) return;
+    setLoading(true);
+    const { error } = await supabase
+      .from("waitlist")
+      .insert({ email: email.trim().toLowerCase() });
+    setLoading(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast.success("You're already on the list!");
+        setSent(true);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+      return;
+    }
+    toast.success("You're in! We'll be in touch soon.");
+    setSent(true);
+  };
+
   return (
     <section className="px-4 py-20 sm:px-6">
       <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-primary px-6 py-14 text-primary-foreground sm:px-12 sm:py-20">
@@ -432,25 +457,24 @@ function Waitlist() {
             Join the waitlist and we'll send you an invite the moment Solvia opens up.
           </p>
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (email) setSent(true);
-            }}
+            onSubmit={handleSubmit}
             className="mx-auto mt-8 flex max-w-md flex-col gap-2 sm:flex-row"
           >
             <input
               type="email"
               required
+              disabled={sent || loading}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="w-full rounded-md bg-primary-foreground/10 px-4 py-2.5 text-sm text-primary-foreground placeholder:text-primary-foreground/60 outline-none ring-1 ring-primary-foreground/20 focus:ring-primary-foreground/50"
+              className="w-full rounded-md bg-primary-foreground/10 px-4 py-2.5 text-sm text-primary-foreground placeholder:text-primary-foreground/60 outline-none ring-1 ring-primary-foreground/20 focus:ring-primary-foreground/50 disabled:opacity-70"
             />
             <button
               type="submit"
-              className="rounded-md bg-primary-foreground px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-primary-foreground/90"
+              disabled={sent || loading}
+              className="rounded-md bg-primary-foreground px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-primary-foreground/90 disabled:opacity-80"
             >
-              {sent ? "You're in ✓" : "Join waitlist"}
+              {sent ? "You're in ✓" : loading ? "Joining…" : "Join waitlist"}
             </button>
           </form>
         </div>
