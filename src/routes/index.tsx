@@ -443,7 +443,7 @@ function Waitlist() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@school.edu"
+              placeholder="your@email.com"
               className="w-full rounded-md bg-primary-foreground/10 px-4 py-2.5 text-sm text-primary-foreground placeholder:text-primary-foreground/60 outline-none ring-1 ring-primary-foreground/20 focus:ring-primary-foreground/50"
             />
             <button
