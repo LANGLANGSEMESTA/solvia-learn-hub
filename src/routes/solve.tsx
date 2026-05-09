@@ -76,14 +76,13 @@ function Navbar() {
   );
 }
 
-type TabKey = "photo" | "type" | "pdf" | "camera";
+type TabKey = "upload" | "type" | "camera";
 type Subject = "Math" | "Physics" | "Chemistry";
 type Mode = "quick" | "full" | "socratic";
 
 const TABS: { key: TabKey; label: string; icon: typeof Camera }[] = [
-  { key: "photo", label: "Photo", icon: ImageIcon },
+  { key: "upload", label: "Upload", icon: Upload },
   { key: "type", label: "Type", icon: Keyboard },
-  { key: "pdf", label: "PDF", icon: FileText },
   { key: "camera", label: "Camera", icon: Camera },
 ];
 
