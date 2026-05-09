@@ -115,7 +115,7 @@ function dataUrlToBase64(dataUrl: string) {
 }
 
 function SolvePage() {
-  const [tab, setTab] = useState<TabKey>("photo");
+  const [tab, setTab] = useState<TabKey>("upload");
   const [photo, setPhoto] = useState<File | null>(null);
   const [pdf, setPdf] = useState<File | null>(null);
   const [text, setText] = useState("");
@@ -123,8 +123,7 @@ function SolvePage() {
   const [subject, setSubject] = useState<Subject>("Math");
   const [mode, setMode] = useState<Mode>("full");
 
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -149,9 +148,8 @@ function SolvePage() {
   const callChat = useServerFn(chatFollowUp);
 
   const hasInput =
-    (tab === "photo" && !!photo) ||
+    (tab === "upload" && (!!photo || !!pdf)) ||
     (tab === "type" && text.trim().length > 0) ||
-    (tab === "pdf" && !!pdf) ||
     (tab === "camera" && !!captured);
 
   async function startCamera() {
