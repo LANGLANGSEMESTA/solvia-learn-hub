@@ -184,17 +184,17 @@ function SolvePage() {
   async function buildPayload() {
     const payload: any = { mode, subject };
     if (tab === "type") payload.text = text.trim();
-    else if (tab === "photo" && photo) {
+    else if (tab === "upload" && photo) {
       const { base64, mediaType } = await fileToBase64(photo);
       payload.imageBase64 = base64;
       payload.imageMediaType = mediaType;
+    } else if (tab === "upload" && pdf) {
+      const { base64 } = await fileToBase64(pdf);
+      payload.pdfBase64 = base64;
     } else if (tab === "camera" && captured) {
       const { base64, mediaType } = dataUrlToBase64(captured);
       payload.imageBase64 = base64;
       payload.imageMediaType = mediaType;
-    } else if (tab === "pdf" && pdf) {
-      const { base64 } = await fileToBase64(pdf);
-      payload.pdfBase64 = base64;
     }
     return payload;
   }
