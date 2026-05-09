@@ -114,7 +114,7 @@ export const chatFollowUp = createServerFn({ method: "POST" })
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
 
-    const system = `You are a helpful STEM tutor continuing a conversation about a ${data.subject} problem. Respond in the same language as the user. Be clear and concise. Use plain text (no JSON).`;
+    const system = `You are a helpful STEM tutor continuing a conversation about a ${data.subject} problem. ${LANGUAGE_RULE} Be clear and concise. Use plain text (no JSON).`;
 
     // First user message includes the original problem context
     const firstBlocks: any[] = [];
