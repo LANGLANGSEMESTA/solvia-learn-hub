@@ -324,7 +324,7 @@ function SolvePage() {
         </div>
 
         {/* Tabs */}
-        <div className="mt-8 grid grid-cols-4 gap-1 rounded-lg border border-border bg-card p-1">
+        <div className="mt-8 grid grid-cols-3 gap-1 rounded-lg border border-border bg-card p-1">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -348,28 +348,51 @@ function SolvePage() {
 
         {/* Tab content */}
         <div className="mt-4">
-          {tab === "photo" && (
+          {tab === "upload" && (
             <div
-              onClick={() => photoInputRef.current?.click()}
+              onClick={() => uploadInputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 e.preventDefault();
                 const f = e.dataTransfer.files?.[0];
-                if (f && f.type.startsWith("image/")) setPhoto(f);
+                if (!f) return;
+                if (f.type.startsWith("image/")) {
+                  setPhoto(f);
+                  setPdf(null);
+                } else if (f.type === "application/pdf") {
+                  setPdf(f);
+                  setPhoto(null);
+                }
               }}
               className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-10 text-center transition hover:border-primary/50 hover:bg-muted/40"
             >
-              <Camera className="h-10 w-10 text-primary" strokeWidth={1.5} />
+              <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
               <p className="mt-4 text-sm font-medium">
-                {photo ? photo.name : "Drop your problem here or click to upload"}
+                {photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Accepts JPG, PNG, PDF — up to 10MB
+              </p>
               <input
-                ref={photoInputRef}
+                ref={uploadInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/jpg,application/pdf"
                 className="hidden"
-                onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (!f) {
+                    setPhoto(null);
+                    setPdf(null);
+                    return;
+                  }
+                  if (f.type === "application/pdf") {
+                    setPdf(f);
+                    setPhoto(null);
+                  } else {
+                    setPhoto(f);
+                    setPdf(null);
+                  }
+                }}
               />
             </div>
           )}
@@ -382,32 +405,6 @@ function SolvePage() {
               placeholder="Type your math, physics, or chemistry problem here... e.g. Find the derivative of sin(3x)"
               className="w-full rounded-xl border border-border bg-card p-4 text-sm shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
-          )}
-
-          {tab === "pdf" && (
-            <div
-              onClick={() => pdfInputRef.current?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const f = e.dataTransfer.files?.[0];
-                if (f && f.type === "application/pdf") setPdf(f);
-              }}
-              className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-10 text-center transition hover:border-primary/50 hover:bg-muted/40"
-            >
-              <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
-              <p className="mt-4 text-sm font-medium">
-                {pdf ? pdf.name : "Upload a PDF with your problem"}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">PDF up to 10MB</p>
-              <input
-                ref={pdfInputRef}
-                type="file"
-                accept="application/pdf"
-                className="hidden"
-                onChange={(e) => setPdf(e.target.files?.[0] ?? null)}
-              />
-            </div>
           )}
 
           {tab === "camera" && (
