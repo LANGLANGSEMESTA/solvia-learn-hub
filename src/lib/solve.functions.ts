@@ -2,13 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 
 type Mode = "quick" | "full" | "socratic";
 
+const LANGUAGE_RULE =
+  "Always respond in English unless the user types their question in a specific language other than English or math notation. If the input is pure math notation or symbols, respond in English by default.";
+
 const SYSTEM_PROMPTS: Record<Mode, string> = {
   quick:
-    'You are a STEM tutor. Give a fast trick or shortcut to solve this problem. Be concise. Respond in the same language as the question. Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"trick": string, "answer": string, "note"?: string}',
+    `You are a STEM tutor. Give a fast trick or shortcut to solve this problem. Be concise. ${LANGUAGE_RULE} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"trick": string, "answer": string, "note"?: string}`,
   full:
-    'You are a STEM teacher. Explain step by step like in school curriculum. Respond in the same language as the question. Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"concept": string, "steps": [{"title": string, "content": string, "formula"?: string}], "answer": string}',
+    `You are a STEM teacher. Explain step by step like in school curriculum. ${LANGUAGE_RULE} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"concept": string, "steps": [{"title": string, "content": string, "formula"?: string}], "answer": string}`,
   socratic:
-    'You are a Socratic tutor. Do NOT give the answer. Guide the student with questions and hints only. Respond in the same language as the question. Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"hint": string, "question": string, "encouragement": string}',
+    `You are a Socratic tutor. Do NOT give the answer. Guide the student with questions and hints only. ${LANGUAGE_RULE} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"hint": string, "question": string, "encouragement": string}`,
 };
 
 const MODEL = "claude-opus-4-5";
