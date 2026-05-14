@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/solve")({
   head: () => ({
@@ -134,6 +135,9 @@ function dataUrlToBase64(dataUrl: string) {
 }
 
 function SolvePage() {
+  const { user } = useAuth();
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [bookmarked, setBookmarked] = useState(false);
   const [tab, setTab] = useState<TabKey>("upload");
   const [photo, setPhoto] = useState<File | null>(null);
   const [pdf, setPdf] = useState<File | null>(null);
@@ -224,6 +228,8 @@ function SolvePage() {
     setResult(null);
     setChatOpen(false);
     setChatHistory([]);
+    setSavedId(null);
+    setBookmarked(false);
     try {
       const payload = await buildPayload();
       lastContextRef.current = {
@@ -236,11 +242,47 @@ function SolvePage() {
       const res = await callSolve({ data: payload });
       setResult(res.result as AnyResult);
       setResultMode(mode);
+
+      if (user) {
+        const inputType = payload.imageBase64 ? "image" : payload.pdfBase64 ? "pdf" : "text";
+        const { data, error } = await supabase
+          .from("problems")
+          .insert({
+            user_id: user.id,
+            subject,
+            mode,
+            input_type: inputType,
+            input_text: payload.text || null,
+            result: res.result as any,
+          })
+          .select("id")
+          .single();
+        if (!error && data) setSavedId(data.id);
+      }
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function toggleBookmark() {
+    if (!savedId) {
+      if (!user) toast.error("Sign in to bookmark problems");
+      return;
+    }
+    const next = !bookmarked;
+    setBookmarked(next);
+    const { error } = await supabase
+      .from("problems")
+      .update({ bookmarked: next })
+      .eq("id", savedId);
+    if (error) {
+      setBookmarked(!next);
+      toast.error("Could not update bookmark");
+    } else {
+      toast.success(next ? "Bookmarked" : "Removed from bookmarks");
     }
   }
 
