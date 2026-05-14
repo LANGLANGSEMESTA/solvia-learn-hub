@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
+import { useAuth, signOut } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/solve")({
   head: () => ({
@@ -50,6 +51,7 @@ function Logo() {
 }
 
 function Navbar() {
+  const { user, loading } = useAuth();
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -63,13 +65,30 @@ function Navbar() {
           </Link>
         </nav>
         <div className="flex items-center gap-2">
-          <button className="hidden rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted sm:inline-flex">
-            Sign in
-          </button>
-          <button className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90">
-            Start free
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
+          {loading ? null : user ? (
+            <>
+              <span className="hidden text-sm text-muted-foreground sm:inline">{user.email}</span>
+              <button
+                onClick={() => signOut()}
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="hidden rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted sm:inline-flex">
+                Sign in
+              </Link>
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+              >
+                Start free
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
