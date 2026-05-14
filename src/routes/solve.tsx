@@ -20,10 +20,12 @@ import {
   Send,
   Lightbulb,
   CheckCircle2,
+  Bookmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/solve")({
   head: () => ({
@@ -62,6 +64,9 @@ function Navbar() {
           </Link>
           <Link to="/solve" className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted">
             Solve
+          </Link>
+          <Link to="/history" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">
+            History
           </Link>
         </nav>
         <div className="flex items-center gap-2">
@@ -134,6 +139,9 @@ function dataUrlToBase64(dataUrl: string) {
 }
 
 function SolvePage() {
+  const { user } = useAuth();
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [bookmarked, setBookmarked] = useState(false);
   const [tab, setTab] = useState<TabKey>("upload");
   const [photo, setPhoto] = useState<File | null>(null);
   const [pdf, setPdf] = useState<File | null>(null);
@@ -224,6 +232,8 @@ function SolvePage() {
     setResult(null);
     setChatOpen(false);
     setChatHistory([]);
+    setSavedId(null);
+    setBookmarked(false);
     try {
       const payload = await buildPayload();
       lastContextRef.current = {
@@ -236,11 +246,47 @@ function SolvePage() {
       const res = await callSolve({ data: payload });
       setResult(res.result as AnyResult);
       setResultMode(mode);
+
+      if (user) {
+        const inputType = payload.imageBase64 ? "image" : payload.pdfBase64 ? "pdf" : "text";
+        const { data, error } = await supabase
+          .from("problems")
+          .insert({
+            user_id: user.id,
+            subject,
+            mode,
+            input_type: inputType,
+            input_text: payload.text || null,
+            result: res.result as any,
+          })
+          .select("id")
+          .single();
+        if (!error && data) setSavedId(data.id);
+      }
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function toggleBookmark() {
+    if (!savedId) {
+      if (!user) toast.error("Sign in to bookmark problems");
+      return;
+    }
+    const next = !bookmarked;
+    setBookmarked(next);
+    const { error } = await supabase
+      .from("problems")
+      .update({ bookmarked: next })
+      .eq("id", savedId);
+    if (error) {
+      setBookmarked(!next);
+      toast.error("Could not update bookmark");
+    } else {
+      toast.success(next ? "Bookmarked" : "Removed from bookmarks");
     }
   }
 
@@ -559,6 +605,20 @@ function SolvePage() {
                 <MessageCircle className="h-4 w-4" />
                 Ask a follow-up
               </button>
+              {user && savedId && (
+                <button
+                  onClick={toggleBookmark}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition",
+                    bookmarked
+                      ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
+                      : "border-border bg-card hover:bg-muted",
+                  )}
+                >
+                  <Bookmark className={cn("h-4 w-4", bookmarked && "fill-current")} />
+                  {bookmarked ? "Bookmarked" : "Bookmark"}
+                </button>
+              )}
             </div>
 
             {chatOpen && (

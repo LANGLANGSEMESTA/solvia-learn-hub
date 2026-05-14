@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      problems: {
+        Row: {
+          bookmarked: boolean
+          created_at: string
+          id: string
+          input_text: string | null
+          input_type: string
+          mode: string
+          result: Json
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          bookmarked?: boolean
+          created_at?: string
+          id?: string
+          input_text?: string | null
+          input_type: string
+          mode: string
+          result: Json
+          subject: string
+          user_id: string
+        }
+        Update: {
+          bookmarked?: boolean
+          created_at?: string
+          id?: string
+          input_text?: string | null
+          input_type?: string
+          mode?: string
+          result?: Json
+          subject?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       waitlist: {
         Row: {
           created_at: string
