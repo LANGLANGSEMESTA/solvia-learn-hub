@@ -20,6 +20,7 @@ import {
   Send,
   Lightbulb,
   CheckCircle2,
+  Bookmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
@@ -601,6 +602,20 @@ function SolvePage() {
                 <MessageCircle className="h-4 w-4" />
                 Ask a follow-up
               </button>
+              {user && savedId && (
+                <button
+                  onClick={toggleBookmark}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition",
+                    bookmarked
+                      ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
+                      : "border-border bg-card hover:bg-muted",
+                  )}
+                >
+                  <Bookmark className={cn("h-4 w-4", bookmarked && "fill-current")} />
+                  {bookmarked ? "Bookmarked" : "Bookmark"}
+                </button>
+              )}
             </div>
 
             {chatOpen && (
