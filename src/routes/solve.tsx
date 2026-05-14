@@ -65,6 +65,9 @@ function Navbar() {
           <Link to="/solve" className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted">
             Solve
           </Link>
+          <Link to="/history" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">
+            History
+          </Link>
         </nav>
         <div className="flex items-center gap-2">
           {loading ? null : user ? (
