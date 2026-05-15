@@ -613,6 +613,20 @@ function SolvePage() {
                 Listen
               </button>
               <button
+                onClick={async () => {
+                  const text = formatResultForClipboard(result, resultMode);
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    toast.success("Copied to clipboard");
+                  } catch {
+                    toast.error("Could not copy");
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
+              >
+                <Copy className="h-4 w-4" />
+                Copy
+              <button
                 onClick={handleTrySimilar}
                 className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
               >
