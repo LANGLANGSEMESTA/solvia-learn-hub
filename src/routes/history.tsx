@@ -94,6 +94,7 @@ function HistoryPage() {
             <span className="font-serif text-xl font-semibold tracking-tight">Solvia</span>
           </Link>
           <div className="flex items-center gap-2">
+            {user && <StreakBadge />}
             <Link to="/solve" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted">
               Solve
             </Link>
