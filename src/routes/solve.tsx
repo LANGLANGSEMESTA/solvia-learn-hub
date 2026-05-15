@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   Bookmark,
   Loader2,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
@@ -70,6 +71,11 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
           <Link to="/history" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">
             History
           </Link>
+          {user && (
+            <Link to="/profile" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">
+              Profile
+            </Link>
+          )}
         </nav>
         <div className="flex items-center gap-2">
           {user && <StreakBadge refreshKey={refreshKey} />}
@@ -139,6 +145,25 @@ function dataUrlToBase64(dataUrl: string) {
   const [meta, data] = dataUrl.split(",");
   const mediaType = /data:(.*?);base64/.exec(meta)?.[1] || "image/png";
   return { base64: data, mediaType };
+}
+
+function formatResultForClipboard(r: AnyResult, mode: Mode | null): string {
+  if (mode === "quick") {
+    const q = r as QuickResult;
+    return `Trick: ${q.trick}\n\nAnswer: ${q.answer}${q.note ? `\n\nNote: ${q.note}` : ""}`;
+  }
+  if (mode === "full") {
+    const f = r as FullResult;
+    const steps = f.steps
+      .map((s, i) => `${i + 1}. ${s.title}\n${s.content}${s.formula ? `\n   ${s.formula}` : ""}`)
+      .join("\n\n");
+    return `Concept: ${f.concept}\n\n${steps}\n\nAnswer: ${f.answer}`;
+  }
+  if (mode === "socratic") {
+    const s = r as SocraticResult;
+    return `Hint: ${s.hint}\n\nQuestion: ${s.question}\n\n${s.encouragement}`;
+  }
+  return JSON.stringify(r, null, 2);
 }
 
 function SolvePage() {
@@ -605,6 +630,21 @@ function SolvePage() {
               >
                 <Volume2 className="h-4 w-4" />
                 Listen
+              </button>
+              <button
+                onClick={async () => {
+                  const text = formatResultForClipboard(result, resultMode);
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    toast.success("Copied to clipboard");
+                  } catch {
+                    toast.error("Could not copy");
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
+              >
+                <Copy className="h-4 w-4" />
+                Copy
               </button>
               <button
                 onClick={handleTrySimilar}

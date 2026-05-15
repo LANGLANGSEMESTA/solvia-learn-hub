@@ -99,6 +99,11 @@ function HistoryPage() {
               Solve
             </Link>
             {user && (
+              <Link to="/profile" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted">
+                Profile
+              </Link>
+            )}
+            {user && (
               <button onClick={() => signOut()} className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted">
                 Sign out
               </button>
