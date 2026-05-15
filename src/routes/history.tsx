@@ -4,6 +4,7 @@ import { Sigma, Bookmark, Trash2, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, signOut } from "@/hooks/use-auth";
+import { StreakBadge } from "@/components/StreakBadge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/history")({
@@ -93,6 +94,7 @@ function HistoryPage() {
             <span className="font-serif text-xl font-semibold tracking-tight">Solvia</span>
           </Link>
           <div className="flex items-center gap-2">
+            {user && <StreakBadge />}
             <Link to="/solve" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted">
               Solve
             </Link>

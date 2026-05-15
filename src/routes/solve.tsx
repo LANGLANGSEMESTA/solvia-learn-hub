@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { StreakBadge } from "@/components/StreakBadge";
 
 export const Route = createFileRoute("/solve")({
   head: () => ({
@@ -52,7 +53,7 @@ function Logo() {
   );
 }
 
-function Navbar() {
+function Navbar({ refreshKey }: { refreshKey?: unknown }) {
   const { user, loading } = useAuth();
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
@@ -70,6 +71,7 @@ function Navbar() {
           </Link>
         </nav>
         <div className="flex items-center gap-2">
+          {user && <StreakBadge refreshKey={refreshKey} />}
           {loading ? null : user ? (
             <>
               <span className="hidden text-sm text-muted-foreground sm:inline">{user.email}</span>
@@ -377,7 +379,7 @@ function SolvePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar refreshKey={savedId} />
       <main className="mx-auto w-full max-w-[680px] px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
         <div className="text-center">
           <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
