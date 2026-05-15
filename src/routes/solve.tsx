@@ -141,7 +141,11 @@ function dataUrlToBase64(dataUrl: string) {
 }
 
 function SolvePage() {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  useEffect(() => {
+    if (!authLoading && !user) navigate({ to: "/login" });
+  }, [authLoading, user, navigate]);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [tab, setTab] = useState<TabKey>("upload");
