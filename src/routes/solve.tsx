@@ -53,7 +53,7 @@ function Logo() {
   );
 }
 
-function Navbar() {
+function Navbar({ refreshKey }: { refreshKey?: unknown }) {
   const { user, loading } = useAuth();
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
@@ -71,6 +71,7 @@ function Navbar() {
           </Link>
         </nav>
         <div className="flex items-center gap-2">
+          {user && <StreakBadge refreshKey={refreshKey} />}
           {loading ? null : user ? (
             <>
               <span className="hidden text-sm text-muted-foreground sm:inline">{user.email}</span>
