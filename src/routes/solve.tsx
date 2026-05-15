@@ -626,6 +626,7 @@ function SolvePage() {
               >
                 <Copy className="h-4 w-4" />
                 Copy
+              </button>
               <button
                 onClick={handleTrySimilar}
                 className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
