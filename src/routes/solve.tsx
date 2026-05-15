@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { StreakBadge } from "@/components/StreakBadge";
 
 export const Route = createFileRoute("/solve")({
   head: () => ({
