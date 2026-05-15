@@ -24,16 +24,41 @@ import { signOut } from "@/hooks/use-auth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Solvia — AI-powered STEM tutor" },
+      { title: "Solvia — AI tutor for Math, Physics & Chemistry" },
       {
         name: "description",
         content:
-          "Solvia explains Math, Physics, and Chemistry the way you want it. Upload a photo, type a question, or scan your textbook.",
+          "Snap, type, or upload your STEM problem. Solvia explains every step in plain English so you actually understand — not just copy the answer.",
       },
+      { name: "keywords", content: "AI math solver, physics tutor, chemistry helper, step-by-step solutions, homework AI, STEM tutor" },
+      { name: "author", content: "Solvia" },
+      { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Solvia — Solve it. Understand it. Master it." },
       {
         property: "og:description",
-        content: "AI-powered STEM tutor for high school and university students.",
+        content: "AI tutor for Math, Physics, and Chemistry. Step-by-step solutions that teach you the thinking behind the answer.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Solvia" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Solvia — AI tutor for Math, Physics & Chemistry" },
+      {
+        name: "twitter:description",
+        content: "Step-by-step STEM solutions that teach the thinking, not just the answer.",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          name: "Solvia",
+          description: "AI tutor for Math, Physics, and Chemistry with step-by-step solutions.",
+          applicationCategory: "EducationalApplication",
+          operatingSystem: "Web",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        }),
       },
     ],
   }),
