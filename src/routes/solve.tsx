@@ -21,6 +21,7 @@ import {
   Lightbulb,
   CheckCircle2,
   Bookmark,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
