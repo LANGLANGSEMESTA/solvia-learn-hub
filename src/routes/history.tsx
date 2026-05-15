@@ -4,6 +4,7 @@ import { Sigma, Bookmark, Trash2, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, signOut } from "@/hooks/use-auth";
+import { StreakBadge } from "@/components/StreakBadge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/history")({
