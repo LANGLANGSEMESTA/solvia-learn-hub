@@ -379,7 +379,7 @@ function SolvePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar refreshKey={savedId} />
       <main className="mx-auto w-full max-w-[680px] px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
         <div className="text-center">
           <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
