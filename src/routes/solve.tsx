@@ -147,6 +147,25 @@ function dataUrlToBase64(dataUrl: string) {
   return { base64: data, mediaType };
 }
 
+function formatResultForClipboard(r: AnyResult, mode: Mode | null): string {
+  if (mode === "quick") {
+    const q = r as QuickResult;
+    return `Trick: ${q.trick}\n\nAnswer: ${q.answer}${q.note ? `\n\nNote: ${q.note}` : ""}`;
+  }
+  if (mode === "full") {
+    const f = r as FullResult;
+    const steps = f.steps
+      .map((s, i) => `${i + 1}. ${s.title}\n${s.content}${s.formula ? `\n   ${s.formula}` : ""}`)
+      .join("\n\n");
+    return `Concept: ${f.concept}\n\n${steps}\n\nAnswer: ${f.answer}`;
+  }
+  if (mode === "socratic") {
+    const s = r as SocraticResult;
+    return `Hint: ${s.hint}\n\nQuestion: ${s.question}\n\n${s.encouragement}`;
+  }
+  return JSON.stringify(r, null, 2);
+}
+
 function SolvePage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
