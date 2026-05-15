@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import {
   Lightbulb,
   CheckCircle2,
   Bookmark,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
@@ -141,7 +142,11 @@ function dataUrlToBase64(dataUrl: string) {
 }
 
 function SolvePage() {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  useEffect(() => {
+    if (!authLoading && !user) navigate({ to: "/login" });
+  }, [authLoading, user, navigate]);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [tab, setTab] = useState<TabKey>("upload");
@@ -376,6 +381,14 @@ function SolvePage() {
   }
 
   useEffect(() => () => stopCamera(), []);
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
