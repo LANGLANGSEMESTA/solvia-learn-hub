@@ -96,3 +96,9 @@
     letter-spacing: -0.01em;
   }
 }
+
+@media print {
+  header, nav, button, form { display: none !important; }
+  main { padding: 0 !important; max-width: 100% !important; }
+  body { background: white !important; }
+}
