@@ -208,6 +208,7 @@ function SolvePage() {
 
   const callSolve = useServerFn(solveProblem);
   const callChat = useServerFn(chatFollowUp);
+  const callShare = useServerFn(createShareLink);
 
   const hasInput =
     (tab === "upload" && (!!photo || !!pdf)) ||
