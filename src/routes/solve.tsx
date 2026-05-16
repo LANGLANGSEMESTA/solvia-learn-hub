@@ -23,9 +23,12 @@ import {
   Bookmark,
   Loader2,
   Copy,
+  Share2,
+  Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
+import { createShareLink } from "@/lib/share.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { StreakBadge } from "@/components/StreakBadge";
@@ -205,6 +208,7 @@ function SolvePage() {
 
   const callSolve = useServerFn(solveProblem);
   const callChat = useServerFn(chatFollowUp);
+  const callShare = useServerFn(createShareLink);
 
   const hasInput =
     (tab === "upload" && (!!photo || !!pdf)) ||
@@ -652,6 +656,31 @@ function SolvePage() {
               >
                 <RefreshCw className="h-4 w-4" />
                 Try similar problem
+              </button>
+              {savedId && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const { token } = await callShare({ data: { problemId: savedId } });
+                      const url = `${window.location.origin}/s/${token}`;
+                      await navigator.clipboard.writeText(url);
+                      toast.success("Share link copied to clipboard");
+                    } catch (e: any) {
+                      toast.error(e?.message || "Could not create share link");
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share link
+                </button>
+              )}
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
+              >
+                <Printer className="h-4 w-4" />
+                Save as PDF
               </button>
               <button
                 onClick={() => setChatOpen((v) => !v)}

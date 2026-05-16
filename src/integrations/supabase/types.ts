@@ -23,6 +23,7 @@ export type Database = {
           input_type: string
           mode: string
           result: Json
+          share_token: string | null
           subject: string
           user_id: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           input_type: string
           mode: string
           result: Json
+          share_token?: string | null
           subject: string
           user_id: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           input_type?: string
           mode?: string
           result?: Json
+          share_token?: string | null
           subject?: string
           user_id?: string
         }
