@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const DAILY_LIMIT = 5;
+const MODEL = "deepseek-v4-flash";
+const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 
 type Mode = "quick" | "full" | "socratic";
 
@@ -17,8 +19,6 @@ const SYSTEM_PROMPTS: Record<Mode, string> = {
     `You are a Socratic tutor. Do NOT give the answer. Guide the student with questions and hints only. ${LANGUAGE_RULE} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"hint": string, "question": string, "encouragement": string}`,
 };
 
-const MODEL = "claude-opus-4-5";
-
 type SolveInput = {
   mode: Mode;
   subject: string;
@@ -28,67 +28,81 @@ type SolveInput = {
   pdfBase64?: string;
 };
 
-async function callClaude(system: string, userBlocks: any[]) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
+async function callDeepSeek(system: string, userContent: string) {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not configured");
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 2048,
-      system,
-      messages: [{ role: "user", content: userBlocks }],
+      max_tokens: 8192,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: userContent },
+      ],
     }),
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Anthropic API error [${res.status}]: ${errText}`);
+    throw new Error(`DeepSeek API error [${res.status}]: ${errText}`);
   }
 
   const data = await res.json();
-  const text = data.content?.map((b: any) => (b.type === "text" ? b.text : "")).join("") ?? "";
-  return text;
+  console.log("=== DEEPSEEK FULL JSON ===");
+  console.log(JSON.stringify(data, null, 2));
+  console.log("=== END JSON ===");
+  return data.choices?.[0]?.message?.content ?? "";
 }
 
-function buildBlocks(input: SolveInput, prefix: string) {
-  const blocks: any[] = [];
-  if (input.imageBase64) {
-    blocks.push({
-      type: "image",
-      source: {
-        type: "base64",
-        media_type: input.imageMediaType || "image/png",
-        data: input.imageBase64,
-      },
-    });
+function buildUserContent(input: SolveInput, prefix: string): string {
+  const parts: string[] = [];
+  parts.push(`${prefix}`);
+  parts.push(`Subject: ${input.subject}`);
+  if (input.text) {
+    parts.push(`Problem: ${input.text}`);
+  } else if (input.imageBase64 || input.pdfBase64) {
+    parts.push("Note: The student uploaded an image or PDF. Since direct file parsing is unavailable, please ask them to type out the problem text.");
   }
-  if (input.pdfBase64) {
-    blocks.push({
-      type: "document",
-      source: { type: "base64", media_type: "application/pdf", data: input.pdfBase64 },
-    });
-  }
-  const textPart = `${prefix}\nSubject: ${input.subject}\n${input.text ? `Problem: ${input.text}` : "The problem is in the attached image/document."}`;
-  blocks.push({ type: "text", text: textPart });
-  return blocks;
+  return parts.join("\n");
 }
 
 function extractJson(text: string): any {
-  const cleaned = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  // Remove markdown code fences
+  let cleaned = text.trim()
+    .replace(/^```(?:json)?\s*/im, "")
+    .replace(/\s*```$/m, "")
+    .trim();
+
+  // Try direct parse first
   try {
     return JSON.parse(cleaned);
-  } catch {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
-    throw new Error("Failed to parse AI response as JSON");
+  } catch {}
+
+  // Find the first { and last } and try parsing that
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    try {
+      return JSON.parse(cleaned.slice(start, end + 1));
+    } catch {}
   }
+
+  // Try finding JSON array too
+  const arrStart = cleaned.indexOf("[");
+  const arrEnd = cleaned.lastIndexOf("]");
+  if (arrStart !== -1 && arrEnd !== -1 && arrEnd > arrStart) {
+    try {
+      return JSON.parse(cleaned.slice(arrStart, arrEnd + 1));
+    } catch {}
+  }
+
+  throw new Error("Failed to parse AI response as JSON");
 }
 
 export const solveProblem = createServerFn({ method: "POST" })
@@ -98,19 +112,25 @@ export const solveProblem = createServerFn({ method: "POST" })
     const { supabase } = context;
     const startOfDay = new Date();
     startOfDay.setUTCHours(0, 0, 0, 0);
+
     const { data: { user } } = await supabase.auth.getUser();
-const { count } = await supabase
-  .from("problems")
-  .select("id", { count: "exact", head: true })
-  .eq("user_id", user!.id)
-  .gte("created_at", startOfDay.toISOString());
-if ((count ?? 0) >= DAILY_LIMIT) {
-  throw new Error(`Daily limit reached (${DAILY_LIMIT} problems/day). Upgrade to Premium for unlimited access.`);
-}
+    const { count } = await supabase
+      .from("problems")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id)
+      .gte("created_at", startOfDay.toISOString());
+
+    if ((count ?? 0) >= DAILY_LIMIT) {
+      throw new Error(`Daily limit reached (${DAILY_LIMIT} problems/day). Upgrade to Premium for unlimited access.`);
+    }
+
     const system = SYSTEM_PROMPTS[data.mode];
-    const blocks = buildBlocks(data, "Solve this STEM problem.");
-    const text = await callClaude(system, blocks);
-    return { result: extractJson(text), raw: text };
+    const userContent = buildUserContent(data, "Solve this STEM problem.");
+    const text = await callDeepSeek(system, userContent);
+console.log("=== DEEPSEEK RAW RESPONSE ===");
+console.log(text);
+console.log("=== END RAW RESPONSE ===");
+return { result: extractJson(text), raw: text };
   });
 
 type FollowUpInput = {
@@ -127,57 +147,39 @@ type FollowUpInput = {
 export const chatFollowUp = createServerFn({ method: "POST" })
   .inputValidator((d: FollowUpInput) => d)
   .handler(async ({ data }) => {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not configured");
 
     const system = `You are a helpful STEM tutor continuing a conversation about a ${data.subject} problem. ${LANGUAGE_RULE} Be clear and concise. Use plain text (no JSON).`;
 
-    // First user message includes the original problem context
-    const firstBlocks: any[] = [];
-    if (data.imageBase64) {
-      firstBlocks.push({
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: data.imageMediaType || "image/png",
-          data: data.imageBase64,
-        },
-      });
-    }
-    if (data.pdfBase64) {
-      firstBlocks.push({
-        type: "document",
-        source: { type: "base64", media_type: "application/pdf", data: data.pdfBase64 },
-      });
-    }
-    firstBlocks.push({
-      type: "text",
-      text: `Original problem (${data.subject}):\n${data.originalText || "See attachment."}`,
-    });
+    const messages: any[] = [
+      { role: "system", content: system },
+      {
+        role: "user",
+        content: `Original problem (${data.subject}):\n${data.originalText || "See previous context."}`,
+      },
+    ];
 
-    const messages: any[] = [{ role: "user", content: firstBlocks }];
     for (const m of data.history) {
       messages.push({ role: m.role, content: m.content });
     }
     messages.push({ role: "user", content: data.message });
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ model: MODEL, max_tokens: 1024, system, messages }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 1024, messages }),
     });
 
     if (!res.ok) {
       const errText = await res.text();
-      throw new Error(`Anthropic API error [${res.status}]: ${errText}`);
+      throw new Error(`DeepSeek API error [${res.status}]: ${errText}`);
     }
+
     const json = await res.json();
-    const text =
-      json.content?.map((b: any) => (b.type === "text" ? b.text : "")).join("") ?? "";
+    const text = json.choices?.[0]?.message?.content ?? "";
     return { reply: text };
   });
-
