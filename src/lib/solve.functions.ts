@@ -8,7 +8,7 @@ const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 type Mode = "quick" | "full" | "socratic";
 
 const LANGUAGE_RULE =
-  "Always respond in English unless the user types their question in a specific language other than English or math notation. If the input is pure math notation or symbols, respond in English by default.";
+  "IMPORTANT: Detect the language of the user's problem and respond in the SAME language. If the problem is in Indonesian, respond in Indonesian. If in English, respond in English. If in pure math notation, respond in English.";
 
 const SYSTEM_PROMPTS: Record<Mode, string> = {
   quick:
@@ -39,13 +39,14 @@ async function callDeepSeek(system: string, userContent: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 8192,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: userContent },
-      ],
-    }),
+  model: MODEL,
+  max_tokens: 8192,
+  messages: [
+    { role: "system", content: system },
+    { role: "user", content: userContent },
+  ],
+  thinking: { type: "enabled", budget_tokens: 2000 },
+}),
   });
 
   if (!res.ok) {
@@ -54,9 +55,7 @@ async function callDeepSeek(system: string, userContent: string) {
   }
 
   const data = await res.json();
-  console.log("=== DEEPSEEK FULL JSON ===");
-  console.log(JSON.stringify(data, null, 2));
-  console.log("=== END JSON ===");
+  
   return data.choices?.[0]?.message?.content ?? "";
 }
 
@@ -127,9 +126,7 @@ export const solveProblem = createServerFn({ method: "POST" })
     const system = SYSTEM_PROMPTS[data.mode];
     const userContent = buildUserContent(data, "Solve this STEM problem.");
     const text = await callDeepSeek(system, userContent);
-console.log("=== DEEPSEEK RAW RESPONSE ===");
-console.log(text);
-console.log("=== END RAW RESPONSE ===");
+
 return { result: extractJson(text), raw: text };
   });
 
@@ -171,7 +168,7 @@ export const chatFollowUp = createServerFn({ method: "POST" })
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ model: MODEL, max_tokens: 1024, messages }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 8192, messages }),
     });
 
     if (!res.ok) {
