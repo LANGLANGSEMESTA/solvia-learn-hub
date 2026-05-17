@@ -143,6 +143,35 @@ function ProfilePage() {
             Sign out
           </button>
         </section>
+
+        <section className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-5">
+          <h2 className="font-serif text-lg font-semibold text-destructive">Danger zone</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Permanently delete your account and all your problems. This cannot be undone.
+          </p>
+          <button
+            onClick={async () => {
+              if (!confirm("Delete your account and all data? This cannot be undone.")) return;
+              if (!confirm("Are you absolutely sure? Type OK in the next dialog to confirm.")) return;
+              setDeleting(true);
+              try {
+                await callDeleteAccount({} as any);
+                await signOut();
+                toast.success("Account deleted");
+                navigate({ to: "/" });
+              } catch (e: any) {
+                toast.error(e?.message || "Could not delete account");
+              } finally {
+                setDeleting(false);
+              }
+            }}
+            disabled={deleting}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90 disabled:opacity-60"
+          >
+            {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+            Delete account
+          </button>
+        </section>
       </main>
     </div>
   );
