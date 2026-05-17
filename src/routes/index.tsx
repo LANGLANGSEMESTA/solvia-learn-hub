@@ -537,7 +537,7 @@ function FAQ() {
   const items = [
     {
       q: "Is Solvai free to use?",
-      a: "Yes. The free plan lets you solve up to 50 problems per day with all three learning modes. Premium unlocks unlimited problems and priority responses.",
+      a: "Yes. The free plan lets you solve up to 5 problems per day with all three learning modes. Premium unlocks unlimited problems and priority responses.",
     },
     {
       q: "What subjects does Solvai cover?",
