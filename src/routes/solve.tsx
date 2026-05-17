@@ -32,6 +32,25 @@ import { createShareLink } from "@/lib/share.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { StreakBadge } from "@/components/StreakBadge";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+const EXAMPLES: Record<Subject, string[]> = {
+  Math: [
+    "Find the derivative of sin(3x)·cos(2x)",
+    "Solve: 2x² − 5x − 3 = 0",
+    "Evaluate ∫₀^π sin²(x) dx",
+  ],
+  Physics: [
+    "A 2 kg block slides down a frictionless 30° incline. Find its acceleration.",
+    "Find the equivalent resistance of two 6Ω resistors in parallel.",
+    "Calculate the period of a pendulum with length 1 m.",
+  ],
+  Chemistry: [
+    "Balance: C₃H₈ + O₂ → CO₂ + H₂O",
+    "Find the pH of a 0.01 M HCl solution.",
+    "How many grams are in 0.5 mol of NaCl?",
+  ],
+};
 
 export const Route = createFileRoute("/solve")({
   head: () => ({
