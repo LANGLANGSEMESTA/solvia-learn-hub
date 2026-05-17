@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Sigma, ArrowLeft, Loader2, Flame, BookOpen } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Sigma, ArrowLeft, Loader2, Flame, BookOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, signOut } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { deleteAccount } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -24,6 +27,8 @@ function ProfilePage() {
   const [pwd, setPwd] = useState("");
   const [pwd2, setPwd2] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const callDeleteAccount = useServerFn(deleteAccount);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -74,9 +79,12 @@ function ProfilePage() {
             </div>
             <span className="font-serif text-xl font-semibold tracking-tight">Solvia</span>
           </Link>
-          <Link to="/solve" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Back to Solve
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/solve" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" /> Back to Solve
+            </Link>
+          </div>
         </div>
       </header>
 
