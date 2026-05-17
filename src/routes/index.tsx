@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { signOut } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -83,6 +84,7 @@ function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Logo />
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           {loading ? null : user ? (
             <>
               <Link to="/solve" className="hidden rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted sm:inline-flex">
@@ -525,6 +527,56 @@ function Waitlist() {
               {sent ? "You're in ✓" : loading ? "Joining…" : "Join waitlist"}
             </button>
           </form>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FAQ() {
+  const items = [
+    {
+      q: "Is Solvia free to use?",
+      a: "Yes. The free plan lets you solve up to 50 problems per day with all three learning modes. Premium unlocks unlimited problems and priority responses.",
+    },
+    {
+      q: "What subjects does Solvia cover?",
+      a: "Math (algebra, calculus, statistics), Physics (mechanics, electricity, waves), and Chemistry (stoichiometry, organic, equilibrium). More subjects are coming soon.",
+    },
+    {
+      q: "Can I upload a photo or PDF of my homework?",
+      a: "Absolutely. Snap a photo, drag a PDF, or use your webcam. Solvia reads handwritten and printed problems.",
+    },
+    {
+      q: "Will Solvia just give me the answer?",
+      a: "Only if you ask for it. The Full Explanation mode walks through every step, and Socratic mode never gives the answer — it guides you to discover it.",
+    },
+    {
+      q: "Is my data private?",
+      a: "Your problems are stored privately to your account. You can delete any problem or your entire account at any time from your profile.",
+    },
+  ];
+  return (
+    <section className="bg-card/40 px-4 py-20 sm:px-6">
+      <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
+            Frequently asked <span className="text-primary italic">questions</span>
+          </h2>
+        </div>
+        <div className="mt-10 space-y-3">
+          {items.map((it) => (
+            <details
+              key={it.q}
+              className="group rounded-xl border border-border bg-card p-5 open:shadow-sm"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between font-serif text-base font-semibold">
+                {it.q}
+                <span className="ml-4 text-primary transition group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 text-sm text-muted-foreground">{it.a}</p>
+            </details>
+          ))}
         </div>
       </div>
     </section>
