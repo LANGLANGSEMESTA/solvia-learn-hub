@@ -55,11 +55,11 @@ const EXAMPLES: Record<Subject, string[]> = {
 export const Route = createFileRoute("/solve")({
   head: () => ({
     meta: [
-      { title: "Solve — Solvia" },
+      { title: "Solve — Solvai" },
       {
         name: "description",
         content:
-          "Solve any STEM problem with Solvia. Upload a photo, type your question, scan a PDF, or use your camera.",
+          "Solve any STEM problem with Solvai. Upload a photo, type your question, scan a PDF, or use your camera.",
       },
     ],
   }),
@@ -72,7 +72,7 @@ function Logo() {
       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
         <Sigma className="h-4 w-4" strokeWidth={2.5} />
       </div>
-      <span className="font-serif text-xl font-semibold tracking-tight">Solvia</span>
+      <span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
     </Link>
   );
 }
@@ -913,3 +913,4 @@ function SocraticView({ r }: { r: SocraticResult }) {
     </div>
   );
 }
+

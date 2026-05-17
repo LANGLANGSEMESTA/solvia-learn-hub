@@ -23,3 +23,4 @@ export function StreakBadge({ refreshKey, className }: { refreshKey?: unknown; c
     </div>
   );
 }
+

@@ -75,15 +75,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lovable App" },
-      { name: "description", content: "Solvia is an AI-powered STEM tutor web app for students." },
+      { name: "description", content: "Solvai is an AI-powered STEM tutor web app for students." },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Solvia is an AI-powered STEM tutor web app for students." },
+      { property: "og:description", content: "Solvai is an AI-powered STEM tutor web app for students." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Solvia is an AI-powered STEM tutor web app for students." },
+      { name: "twitter:description", content: "Solvai is an AI-powered STEM tutor web app for students." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/985972ac-ca23-4aa0-a52e-f421b9eb5a33/id-preview-c7098d77--63db3c75-27cb-4d04-9f4d-8178bd7be4af.lovable.app-1778209126644.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/985972ac-ca23-4aa0-a52e-f421b9eb5a33/id-preview-c7098d77--63db3c75-27cb-4d04-9f4d-8178bd7be4af.lovable.app-1778209126644.png" },
     ],
@@ -107,7 +107,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('solvia-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}`,
+            __html: `try{var t=localStorage.getItem('Solvai-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}`,
           }}
         />
       </head>
@@ -129,3 +129,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+

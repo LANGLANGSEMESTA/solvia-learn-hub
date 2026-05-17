@@ -7,8 +7,8 @@ import { getSharedProblem } from "@/lib/share.functions";
 export const Route = createFileRoute("/s/$token")({
   head: () => ({
     meta: [
-      { title: "Shared solution — Solvia" },
-      { name: "description", content: "A solution shared from Solvia, the AI STEM tutor." },
+      { title: "Shared solution — Solvai" },
+      { name: "description", content: "A solution shared from Solvai, the AI STEM tutor." },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -36,13 +36,13 @@ function SharedPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Sigma className="h-4 w-4" strokeWidth={2.5} />
             </div>
-            <span className="font-serif text-xl font-semibold tracking-tight">Solvia</span>
+            <span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
           </Link>
           <Link
             to="/signup"
             className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
-            Try Solvia
+            Try Solvai
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -164,3 +164,4 @@ function SharedResult({ mode, result }: { mode: string; result: unknown }) {
   }
   return <pre className="rounded-md bg-muted p-4 text-xs">{JSON.stringify(result, null, 2)}</pre>;
 }
+

@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/history")({
   head: () => ({
     meta: [
-      { title: "Your problems — Solvia" },
-      { name: "description", content: "Browse your saved problems and bookmarks on Solvia." },
+      { title: "Your problems — Solvai" },
+      { name: "description", content: "Browse your saved problems and bookmarks on Solvai." },
     ],
   }),
   component: HistoryPage,
@@ -92,7 +92,7 @@ function HistoryPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Sigma className="h-4 w-4" strokeWidth={2.5} />
             </div>
-            <span className="font-serif text-xl font-semibold tracking-tight">Solvia</span>
+            <span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -217,3 +217,4 @@ function HistoryPage() {
     </div>
   );
 }
+

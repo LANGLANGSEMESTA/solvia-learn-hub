@@ -178,3 +178,4 @@ export const chatFollowUp = createServerFn({ method: "POST" })
       json.content?.map((b: any) => (b.type === "text" ? b.text : "")).join("") ?? "";
     return { reply: text };
   });
+

@@ -25,24 +25,24 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Solvia — AI tutor for Math, Physics & Chemistry" },
+      { title: "Solvai — AI tutor for Math, Physics & Chemistry" },
       {
         name: "description",
         content:
-          "Snap, type, or upload your STEM problem. Solvia explains every step in plain English so you actually understand — not just copy the answer.",
+          "Snap, type, or upload your STEM problem. Solvai explains every step in plain English so you actually understand — not just copy the answer.",
       },
       { name: "keywords", content: "AI math solver, physics tutor, chemistry helper, step-by-step solutions, homework AI, STEM tutor" },
-      { name: "author", content: "Solvia" },
+      { name: "author", content: "Solvai" },
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Solvia — Solve it. Understand it. Master it." },
+      { property: "og:title", content: "Solvai — Solve it. Understand it. Master it." },
       {
         property: "og:description",
         content: "AI tutor for Math, Physics, and Chemistry. Step-by-step solutions that teach you the thinking behind the answer.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "Solvia" },
+      { property: "og:site_name", content: "Solvai" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Solvia — AI tutor for Math, Physics & Chemistry" },
+      { name: "twitter:title", content: "Solvai — AI tutor for Math, Physics & Chemistry" },
       {
         name: "twitter:description",
         content: "Step-by-step STEM solutions that teach the thinking, not just the answer.",
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebApplication",
-          name: "Solvia",
+          name: "Solvai",
           description: "AI tutor for Math, Physics, and Chemistry with step-by-step solutions.",
           applicationCategory: "EducationalApplication",
           operatingSystem: "Web",
@@ -72,7 +72,7 @@ function Logo() {
       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
         <Sigma className="h-4 w-4" strokeWidth={2.5} />
       </div>
-      <span className="font-serif text-xl font-semibold tracking-tight">Solvia</span>
+      <span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
     </div>
   );
 }
@@ -131,7 +131,7 @@ function Hero() {
           <span className="text-primary italic">Actually understand it.</span>
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-          Upload a photo, type your question, or scan your textbook. Solvia explains Math,
+          Upload a photo, type your question, or scan your textbook. Solvai explains Math,
           Physics, and Chemistry — the way you want it.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -158,7 +158,7 @@ function DemoCard() {
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
             <Sigma className="h-3.5 w-3.5" />
           </div>
-          <span className="text-sm font-medium">Solvia</span>
+          <span className="text-sm font-medium">Solvai</span>
         </div>
         <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
           Calculus
@@ -251,7 +251,7 @@ function Features() {
             Everything you need to <span className="text-primary italic">learn smarter</span>
           </h2>
           <p className="mt-3 text-muted-foreground">
-            From snap-and-solve to voice explanations — Solvia adapts to how you study.
+            From snap-and-solve to voice explanations — Solvai adapts to how you study.
           </p>
         </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
@@ -283,7 +283,7 @@ function Features() {
             tint="purple"
             icon={<Flame className="h-5 w-5" />}
             title="Daily streak"
-            desc="Build a study habit. Solvia keeps you accountable, gently."
+            desc="Build a study habit. Solvai keeps you accountable, gently."
           />
           <FeatureCard
             tint="green"
@@ -358,7 +358,7 @@ function Modes() {
             tint="green"
             icon={<HelpCircle className="h-5 w-5" />}
             title="Socratic"
-            desc="Solvia asks you questions, so you discover the answer yourself."
+            desc="Solvai asks you questions, so you discover the answer yourself."
           />
         </div>
       </div>
@@ -504,7 +504,7 @@ function Waitlist() {
             Be the first to know
           </h2>
           <p className="mt-3 text-primary-foreground/80">
-            Join the waitlist and we'll send you an invite the moment Solvia opens up.
+            Join the waitlist and we'll send you an invite the moment Solvai opens up.
           </p>
           <form
             onSubmit={handleSubmit}
@@ -536,19 +536,19 @@ function Waitlist() {
 function FAQ() {
   const items = [
     {
-      q: "Is Solvia free to use?",
+      q: "Is Solvai free to use?",
       a: "Yes. The free plan lets you solve up to 50 problems per day with all three learning modes. Premium unlocks unlimited problems and priority responses.",
     },
     {
-      q: "What subjects does Solvia cover?",
+      q: "What subjects does Solvai cover?",
       a: "Math (algebra, calculus, statistics), Physics (mechanics, electricity, waves), and Chemistry (stoichiometry, organic, equilibrium). More subjects are coming soon.",
     },
     {
       q: "Can I upload a photo or PDF of my homework?",
-      a: "Absolutely. Snap a photo, drag a PDF, or use your webcam. Solvia reads handwritten and printed problems.",
+      a: "Absolutely. Snap a photo, drag a PDF, or use your webcam. Solvai reads handwritten and printed problems.",
     },
     {
-      q: "Will Solvia just give me the answer?",
+      q: "Will Solvai just give me the answer?",
       a: "Only if you ask for it. The Full Explanation mode walks through every step, and Socratic mode never gives the answer — it guides you to discover it.",
     },
     {
@@ -589,7 +589,7 @@ function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 sm:flex-row">
         <Logo />
         <p className="text-xs text-muted-foreground sm:text-sm">
-          © 2025 Solvia · Solve it. Understand it. Master it.
+          © 2025 Solvai · Solve it. Understand it. Master it.
         </p>
       </div>
     </footer>
@@ -613,3 +613,4 @@ function Index() {
     </div>
   );
 }
+

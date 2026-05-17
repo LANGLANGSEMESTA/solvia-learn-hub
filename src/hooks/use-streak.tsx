@@ -27,3 +27,4 @@ export function useStreak(refreshKey?: unknown) {
 
   return streak;
 }
+
