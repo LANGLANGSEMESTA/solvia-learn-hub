@@ -606,6 +606,7 @@ function Index() {
         <Features />
         <Modes />
         <Pricing />
+        <FAQ />
         <Waitlist />
       </main>
       <Footer />
