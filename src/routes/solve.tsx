@@ -32,6 +32,25 @@ import { createShareLink } from "@/lib/share.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { StreakBadge } from "@/components/StreakBadge";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+const EXAMPLES: Record<Subject, string[]> = {
+  Math: [
+    "Find the derivative of sin(3x)·cos(2x)",
+    "Solve: 2x² − 5x − 3 = 0",
+    "Evaluate ∫₀^π sin²(x) dx",
+  ],
+  Physics: [
+    "A 2 kg block slides down a frictionless 30° incline. Find its acceleration.",
+    "Find the equivalent resistance of two 6Ω resistors in parallel.",
+    "Calculate the period of a pendulum with length 1 m.",
+  ],
+  Chemistry: [
+    "Balance: C₃H₈ + O₂ → CO₂ + H₂O",
+    "Find the pH of a 0.01 M HCl solution.",
+    "How many grams are in 0.5 mol of NaCl?",
+  ],
+};
 
 export const Route = createFileRoute("/solve")({
   head: () => ({
@@ -81,6 +100,7 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
           )}
         </nav>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           {user && <StreakBadge refreshKey={refreshKey} />}
           {loading ? null : user ? (
             <>
@@ -507,13 +527,30 @@ function SolvePage() {
           )}
 
           {tab === "type" && (
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={6}
-              placeholder="Type your math, physics, or chemistry problem here... e.g. Find the derivative of sin(3x)"
-              className="w-full rounded-xl border border-border bg-card p-4 text-sm shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
+            <div className="space-y-3">
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={6}
+                placeholder="Type your math, physics, or chemistry problem here... e.g. Find the derivative of sin(3x)"
+                className="w-full rounded-xl border border-border bg-card p-4 text-sm shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+              <div>
+                <div className="mb-2 text-xs font-medium text-muted-foreground">Try an example:</div>
+                <div className="flex flex-wrap gap-2">
+                  {EXAMPLES[subject].map((ex) => (
+                    <button
+                      key={ex}
+                      type="button"
+                      onClick={() => setText(ex)}
+                      className="rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground/80 transition hover:border-primary/40 hover:bg-muted"
+                    >
+                      {ex}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
 
           {tab === "camera" && (

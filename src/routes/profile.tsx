@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Sigma, ArrowLeft, Loader2, Flame, BookOpen } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Sigma, ArrowLeft, Loader2, Flame, BookOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, signOut } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { deleteAccount } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -24,6 +27,8 @@ function ProfilePage() {
   const [pwd, setPwd] = useState("");
   const [pwd2, setPwd2] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const callDeleteAccount = useServerFn(deleteAccount);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -74,9 +79,12 @@ function ProfilePage() {
             </div>
             <span className="font-serif text-xl font-semibold tracking-tight">Solvia</span>
           </Link>
-          <Link to="/solve" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Back to Solve
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/solve" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" /> Back to Solve
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -133,6 +141,35 @@ function ProfilePage() {
             className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium transition hover:bg-muted"
           >
             Sign out
+          </button>
+        </section>
+
+        <section className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-5">
+          <h2 className="font-serif text-lg font-semibold text-destructive">Danger zone</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Permanently delete your account and all your problems. This cannot be undone.
+          </p>
+          <button
+            onClick={async () => {
+              if (!confirm("Delete your account and all data? This cannot be undone.")) return;
+              if (!confirm("Are you absolutely sure? Type OK in the next dialog to confirm.")) return;
+              setDeleting(true);
+              try {
+                await callDeleteAccount({} as any);
+                await signOut();
+                toast.success("Account deleted");
+                navigate({ to: "/" });
+              } catch (e: any) {
+                toast.error(e?.message || "Could not delete account");
+              } finally {
+                setDeleting(false);
+              }
+            }}
+            disabled={deleting}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90 disabled:opacity-60"
+          >
+            {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+            Delete account
           </button>
         </section>
       </main>

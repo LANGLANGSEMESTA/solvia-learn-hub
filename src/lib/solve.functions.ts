@@ -1,4 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+const DAILY_LIMIT = 50;
 
 type Mode = "quick" | "full" | "socratic";
 
@@ -89,8 +92,19 @@ function extractJson(text: string): any {
 }
 
 export const solveProblem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: SolveInput) => d)
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const startOfDay = new Date();
+    startOfDay.setUTCHours(0, 0, 0, 0);
+    const { count } = await supabase
+      .from("problems")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", startOfDay.toISOString());
+    if ((count ?? 0) >= DAILY_LIMIT) {
+      throw new Error(`Daily limit reached (${DAILY_LIMIT} problems/day). Try again tomorrow.`);
+    }
     const system = SYSTEM_PROMPTS[data.mode];
     const blocks = buildBlocks(data, "Solve this STEM problem.");
     const text = await callClaude(system, blocks);
