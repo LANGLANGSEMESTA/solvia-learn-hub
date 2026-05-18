@@ -86,12 +86,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Solvai is an AI-powered STEM tutor web app for students." },
       { property: "og:image", content: "" },
       { name: "twitter:image", content: "" },
+     { name: "theme-color", content: "#5349B7" }, 
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+        { rel: "icon", href: "/favicon.ico" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+  { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
