@@ -69,9 +69,7 @@ export const Route = createFileRoute("/")({
 function Logo() {
   return (
     <div className="flex items-center gap-2">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-        <Sigma className="h-4 w-4" strokeWidth={2.5} />
-      </div>
+      <img src="/apple-touch-icon.png" alt="Solvai" className="h-8 w-8 rounded-lg" />
       <span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
     </div>
   );
