@@ -438,21 +438,21 @@ function Pricing() {
         <div className="mt-12 grid gap-5 sm:grid-cols-2">
           <PriceCard
             name="Free"
-            price="$0"
+            price="Rp0"
             period="forever"
             cta="Get started"
             features={[
-              "5 problems per day",
+              "10 problems per day",
               "2 learning modes",
               "3 follow-up questions",
               "1 similar problem",
               "Daily streak tracking",
             ]}
           />
-          <PriceCard
-            name="Premium"
-            price="$2.99"
-            period="month"
+            <PriceCard
+  name="Premium"
+  price="Rp29.000"
+  period="Month"
             featured
             cta="Go premium"
             features={[
@@ -537,7 +537,7 @@ function FAQ() {
   const items = [
     {
       q: "Is Solvai free to use?",
-      a: "Yes. The free plan lets you solve up to 5 problems per day with all three learning modes. Premium unlocks unlimited problems and priority responses.",
+      a: "Yes. The free plan lets you solve up to 10 problems per day with all three learning modes. Premium unlocks unlimited problems and priority responses.",
     },
     {
       q: "What subjects does Solvai cover?",

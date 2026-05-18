@@ -31,10 +31,10 @@ export function WelcomeModal({ userName }: { userName?: string }) {
             <span className="text-2xl">🎓</span>
           </div>
           <h2 className="font-serif text-2xl font-semibold">
-            Selamat datang{userName ? `, ${userName.split(" ")[0]}` : ""}!
+            Welcome{userName ? `, ${userName.split(" ")[0]}` : ""}!
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Solvai adalah tutor STEM berbasis AI. Berikut cara menggunakannya:
+            Solvai is your AI-powered STEM tutor. Here's how to get started:
           </p>
         </div>
 
@@ -42,8 +42,8 @@ export function WelcomeModal({ userName }: { userName?: string }) {
           <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
             <Camera className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-medium">Upload atau foto soal</p>
-              <p className="text-xs text-muted-foreground">Foto soal dari buku atau ketik langsung — Solvai akan membacanya.</p>
+              <p className="text-sm font-medium">Upload or snap a problem</p>
+              <p className="text-xs text-muted-foreground">Photo from your textbook or type it directly — Solvai reads it all.</p>
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
@@ -53,15 +53,15 @@ export function WelcomeModal({ userName }: { userName?: string }) {
               <HelpCircle className="h-4 w-4 text-violet-500" />
             </div>
             <div>
-              <p className="text-sm font-medium">3 mode belajar</p>
-              <p className="text-xs text-muted-foreground">Quick trick, Full explanation, atau Socratic — sesuai kebutuhanmu.</p>
+              <p className="text-sm font-medium">3 learning modes</p>
+              <p className="text-xs text-muted-foreground">Quick trick, Full explanation, or Socratic — pick what fits the moment.</p>
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
             <span className="mt-0.5 text-lg">🎚️</span>
             <div>
-              <p className="text-sm font-medium">Pilih level penjelasan</p>
-              <p className="text-xs text-muted-foreground">Dari A Kid sampai Expert — penjelasan disesuaikan dengan levelmu.</p>
+              <p className="text-sm font-medium">Choose your level</p>
+              <p className="text-xs text-muted-foreground">From "A Kid" to "Expert" — explanations tailored to your level.</p>
             </div>
           </div>
         </div>
@@ -70,11 +70,11 @@ export function WelcomeModal({ userName }: { userName?: string }) {
           onClick={dismiss}
           className="mt-6 w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
-          Mulai sekarang 🚀
+          Start solving 🚀
         </button>
 
         <p className="mt-3 text-center text-xs text-muted-foreground">
-          Kamu punya 10 soal gratis per hari.
+          You have 10 free problems per day.
         </p>
       </div>
     </div>

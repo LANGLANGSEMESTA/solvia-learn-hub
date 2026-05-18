@@ -52,7 +52,7 @@ function UpgradePage() {
           </Link>
           <Link to="/solve" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
-            Kembali
+            Back
           </Link>
         </div>
       </header>
@@ -62,30 +62,30 @@ function UpgradePage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
             <Zap className="h-7 w-7 text-primary" />
           </div>
-          <h1 className="font-serif text-3xl font-semibold">Upgrade ke Premium</h1>
-          <p className="mt-2 text-muted-foreground">Belajar tanpa batas dengan Solvai Premium</p>
+          <h1 className="font-serif text-3xl font-semibold">Upgrade to Premium</h1>
+          <p className="mt-2 text-muted-foreground">Learn without limits with Solvai Premium</p>
         </div>
 
         <div className="mt-10 rounded-2xl border border-primary/30 bg-card p-6 shadow-sm">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Harga</p>
+              <p className="text-sm text-muted-foreground">Price</p>
               <p className="font-serif text-4xl font-bold">Rp29.000</p>
-              <p className="text-sm text-muted-foreground">/bulan</p>
+              <p className="text-sm text-muted-foreground">/month</p>
             </div>
             <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              Populer
+              Popular
             </span>
           </div>
 
           <ul className="mt-6 space-y-3">
             {[
-              "Soal unlimited per hari",
-              "Semua mode: Quick, Full, Socratic",
-              "OCR foto soal",
-              "Follow-up chat tak terbatas",
-              "Bookmark & history",
-              "Prioritas akses fitur baru",
+              "Unlimited problems per day",
+              "All 3 modes: Quick, Full, Socratic",
+              "Photo OCR for problem scanning",
+              "Unlimited follow-up chat",
+              "Bookmarks & history",
+              "Priority access to new features",
             ].map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm">
                 <Check className="h-4 w-4 shrink-0 text-primary" />
@@ -99,16 +99,16 @@ function UpgradePage() {
             disabled={loading || !user}
             className="mt-8 w-full rounded-xl bg-primary py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "Memuat..." : "Bayar sekarang"}
+            {loading ? "Loading..." : "Pay now"}
           </button>
 
           <p className="mt-3 text-center text-xs text-muted-foreground">
-            GoPay · OVO · DANA · Transfer Bank · QRIS
+            GoPay · OVO · DANA · Bank Transfer · QRIS
           </p>
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Dengan membayar, kamu setuju dengan syarat dan ketentuan Solvai.
+          By paying, you agree to Solvai's terms and conditions.
         </p>
       </main>
     </div>
