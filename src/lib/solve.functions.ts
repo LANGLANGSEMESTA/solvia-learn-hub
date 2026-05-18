@@ -215,9 +215,20 @@ export const solveProblem = createServerFn({ method: "POST" })
       .eq("user_id", user!.id)
       .gte("created_at", startOfDay.toISOString());
 
-    if ((count ?? 0) >= DAILY_LIMIT) {
-      throw new Error(`Daily limit reached (${DAILY_LIMIT} problems/day). Upgrade to Premium for unlimited access.`);
-    }
+    // Check premium status
+const { data: subscription } = await supabase
+  .from("subscriptions")
+  .select("is_premium, premium_until")
+  .eq("user_id", user!.id)
+  .single();
+
+const isPremium = subscription?.is_premium && 
+  subscription?.premium_until && 
+  new Date(subscription.premium_until) > new Date();
+
+if (!isPremium && (count ?? 0) >= DAILY_LIMIT) {
+  throw new Error(`Daily limit reached (${DAILY_LIMIT} problems/day). Upgrade to Premium for unlimited access.`);
+}
 
     // OCR: extract text from image or PDF if provided
     const system = SYSTEM_PROMPTS[data.mode];
