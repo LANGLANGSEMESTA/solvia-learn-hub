@@ -69,7 +69,7 @@ export const Route = createFileRoute("/solve")({
 function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2">
-      <img src="/icon-192.png" alt="Solvai" className="h-8 w-8 rounded-lg" />
+      <img src="/solvai-icon.png" alt="Solvai" className="h-8 w-8 rounded-lg" />
       <span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
     </Link>
   );
@@ -1046,5 +1046,6 @@ function SocraticView({
     </div>
   );
 }
+
 
 

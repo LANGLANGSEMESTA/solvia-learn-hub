@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
         { rel: "icon", href: "/favicon.ico" },
-  { rel: "apple-touch-icon", href: "/icon-192.png" },
+  { rel: "apple-touch-icon", href: "/solvai-icon.png" },
   { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
@@ -137,6 +137,7 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
 
 
 
