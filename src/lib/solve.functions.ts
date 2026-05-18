@@ -4,6 +4,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const DAILY_LIMIT = 5;
 const MODEL = "deepseek-v4-flash";
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
+const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1";
 
 type Mode = "quick" | "full" | "socratic";
 type Level = "kid" | "middle" | "high" | "university" | "expert";
@@ -46,6 +48,82 @@ type SolveInput = {
   pdfBase64?: string;
 };
 
+async function extractTextFromImage(imageBase64: string, mediaType: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+
+  const res = await fetch(
+    `${GEMINI_BASE_URL}/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: "Extract and transcribe all text and mathematical expressions from this image exactly as written. Include all numbers, symbols, equations, and text. Output only the extracted content, nothing else.",
+              },
+              {
+                inline_data: {
+                  mime_type: mediaType,
+                  data: imageBase64,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini OCR error [${res.status}]: ${errText}`);
+  }
+
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+}
+
+async function extractTextFromPdf(pdfBase64: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+
+  const res = await fetch(
+    `${GEMINI_BASE_URL}/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: "Extract and transcribe all text and mathematical expressions from this PDF exactly as written. Include all numbers, symbols, equations, and text. Output only the extracted content, nothing else.",
+              },
+              {
+                inline_data: {
+                  mime_type: "application/pdf",
+                  data: pdfBase64,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini PDF OCR error [${res.status}]: ${errText}`);
+  }
+
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+}
+
 async function callDeepSeek(system: string, userContent: string) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not configured");
@@ -76,17 +154,19 @@ async function callDeepSeek(system: string, userContent: string) {
   return data.choices?.[0]?.message?.content ?? "";
 }
 
-function buildUserContent(input: SolveInput, prefix: string): string {
+function buildUserContent(input: SolveInput & { extractedText?: string }, prefix: string): string {
   const parts: string[] = [];
   parts.push(`${prefix}`);
   parts.push(`Subject: ${input.subject}`);
   if (input.level) {
     parts.push(`Explanation level: ${LEVEL_DESCRIPTIONS[input.level]}`);
   }
-  if (input.text) {
+  if (input.extractedText) {
+    parts.push(`Problem (extracted from image/PDF): ${input.extractedText}`);
+  } else if (input.text) {
     parts.push(`Problem: ${input.text}`);
-  } else if (input.imageBase64 || input.pdfBase64) {
-    parts.push("Note: The student uploaded an image or PDF. Since direct file parsing is unavailable, please ask them to type out the problem text.");
+  } else {
+    parts.push("Note: No problem text provided.");
   }
   return parts.join("\n");
 }
@@ -139,8 +219,15 @@ export const solveProblem = createServerFn({ method: "POST" })
       throw new Error(`Daily limit reached (${DAILY_LIMIT} problems/day). Upgrade to Premium for unlimited access.`);
     }
 
+    // OCR: extract text from image or PDF if provided
     const system = SYSTEM_PROMPTS[data.mode];
-    const userContent = buildUserContent(data, "Solve this STEM problem.");
+    let extractedText: string | undefined;
+    if (data.imageBase64 && data.imageMediaType) {
+      extractedText = await extractTextFromImage(data.imageBase64, data.imageMediaType);
+    } else if (data.pdfBase64) {
+      extractedText = await extractTextFromPdf(data.pdfBase64);
+    }
+    const userContent = buildUserContent({ ...data, extractedText }, "Solve this STEM problem.");
     const text = await callDeepSeek(system, userContent);
     return { result: extractJson(text), raw: text };
   });

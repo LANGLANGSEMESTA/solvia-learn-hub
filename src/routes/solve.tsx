@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { createWorker } from "tesseract.js";
 import {
   Sigma,
   ArrowRight,
@@ -176,7 +177,12 @@ function dataUrlToBase64(dataUrl: string) {
   const mediaType = /data:(.*?);base64/.exec(meta)?.[1] || "image/png";
   return { base64: data, mediaType };
 }
-
+async function ocrImage(file: File): Promise<string> {
+  const worker = await createWorker("eng+ind");
+  const { data: { text } } = await worker.recognize(file);
+  await worker.terminate();
+  return text.trim();
+}
 function formatResultForClipboard(r: AnyResult, mode: Mode | null): string {
   if (mode === "quick") {
     const q = r as QuickResult;
@@ -214,7 +220,6 @@ function SolvePage() {
   const [mode, setMode] = useState<Mode>("full");
   const [level, setLevel] = useState<Level>("high");
 
-  const uploadInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -279,10 +284,10 @@ function SolvePage() {
     const payload: any = { mode, subject, level };
     if (tab === "type") payload.text = text.trim();
     else if (tab === "upload" && photo) {
-      const { base64, mediaType } = await fileToBase64(photo);
-      payload.imageBase64 = base64;
-      payload.imageMediaType = mediaType;
-    } else if (tab === "upload" && pdf) {
+  const extractedText = await ocrImage(photo);
+  payload.text = extractedText;
+}
+     else if (tab === "upload" && pdf) {
       const { base64 } = await fileToBase64(pdf);
       payload.pdfBase64 = base64;
     } else if (tab === "camera" && captured) {
@@ -296,7 +301,6 @@ function SolvePage() {
   async function handleSolve() {
     if (!hasInput || loading) return;
 
-    // Detect if problem is too complex for selected level
     if (level === "kid" || level === "middle") {
       const complexIndicators = [
         /integral|derivative|calculus|diferensial/i,
@@ -437,7 +441,7 @@ function SolvePage() {
         u.lang = "en-US";
       }
       const voices = window.speechSynthesis.getVoices();
-      const matchingVoice = voices.find(v => v.lang.startsWith(u.lang.split('-')[0]));
+      const matchingVoice = voices.find(v => v.lang.startsWith(u.lang.split("-")[0]));
       if (matchingVoice) u.voice = matchingVoice;
       window.speechSynthesis.speak(u);
     } catch {
@@ -499,7 +503,6 @@ function SolvePage() {
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="mt-8 grid grid-cols-3 gap-1 rounded-lg border border-border bg-card p-1">
           {TABS.map((t) => {
             const Icon = t.icon;
@@ -522,56 +525,53 @@ function SolvePage() {
           })}
         </div>
 
-        {/* Tab content */}
         <div className="mt-4">
           {tab === "upload" && (
-            <div
-              onClick={() => uploadInputRef.current?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const f = e.dataTransfer.files?.[0];
-                if (!f) return;
-                if (f.type.startsWith("image/")) {
-                  setPhoto(f);
-                  setPdf(null);
-                } else if (f.type === "application/pdf") {
-                  setPdf(f);
-                  setPhoto(null);
-                }
-              }}
-              className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-10 text-center transition hover:border-primary/50 hover:bg-muted/40"
-            >
-              <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
-              <p className="mt-4 text-sm font-medium">
-                {photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Accepts JPG, PNG, PDF — up to 10MB
-              </p>
-              <input
-                ref={uploadInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/jpg,application/pdf"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] ?? null;
-                  if (!f) {
-                    setPhoto(null);
-                    setPdf(null);
-                    return;
-                  }
-                  if (f.type === "application/pdf") {
-                    setPdf(f);
-                    setPhoto(null);
-                  } else {
-                    setPhoto(f);
-                    setPdf(null);
-                  }
-                }}
-              />
-            </div>
-          )}
+  <div
+    onDragOver={(e) => e.preventDefault()}
+    onDrop={(e) => {
+      e.preventDefault();
+      const f = e.dataTransfer.files?.[0];
+      if (!f) return;
+      if (f.type.startsWith("image/")) {
+        setPhoto(f);
+        setPdf(null);
+      } else if (f.type === "application/pdf") {
+        setPdf(f);
+        setPhoto(null);
+      }
+    }}
+    className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-10 text-center transition hover:border-primary/50 hover:bg-muted/40"
+  >
+    <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
+    <p className="mt-4 text-sm font-medium">
+      {photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}
+    </p>
+    <p className="mt-1 text-xs text-muted-foreground">
+      Accepts JPG, PNG, PDF — up to 10MB
+    </p>
+    <input
+      type="file"
+      accept="image/jpeg,image/png,image/jpg,application/pdf"
+      className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+      onChange={(e) => {
+        const f = e.target.files?.[0] ?? null;
+        if (!f) {
+          setPhoto(null);
+          setPdf(null);
+          return;
+        }
+        if (f.type === "application/pdf") {
+          setPdf(f);
+          setPhoto(null);
+        } else {
+          setPhoto(f);
+          setPdf(null);
+        }
+      }}
+    />
+  </div>
+)}
 
           {tab === "type" && (
             <div className="space-y-3">
@@ -579,7 +579,7 @@ function SolvePage() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 rows={6}
-                placeholder="Type your math, physics, or chemistry problem here... e.g. Find the derivative of sin(3x)"
+                placeholder="Type your math, physics, or chemistry problem here..."
                 className="w-full rounded-xl border border-border bg-card p-4 text-sm shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
               <div>
@@ -606,10 +606,7 @@ function SolvePage() {
                 <div className="space-y-3">
                   <img src={captured} alt="Captured problem" className="w-full rounded-lg border border-border" />
                   <button
-                    onClick={() => {
-                      setCaptured(null);
-                      startCamera();
-                    }}
+                    onClick={() => { setCaptured(null); startCamera(); }}
                     className="w-full rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
                   >
                     Retake
@@ -619,10 +616,7 @@ function SolvePage() {
                 <div className="space-y-3">
                   <video ref={videoRef} className="w-full rounded-lg border border-border bg-black" playsInline muted />
                   <div className="flex gap-2">
-                    <button
-                      onClick={capture}
-                      className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                    >
+                    <button onClick={capture} className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                       Capture
                     </button>
                     <button onClick={stopCamera} className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted">
@@ -648,7 +642,6 @@ function SolvePage() {
           )}
         </div>
 
-        {/* Subject */}
         <div className="mt-10">
           <div className="mb-3 flex items-center justify-between">
             <label className="text-sm font-medium">Subject</label>
@@ -672,7 +665,6 @@ function SolvePage() {
           </div>
         </div>
 
-        {/* Mode */}
         <div className="mt-8">
           <label className="mb-3 block text-sm font-medium">Mode</label>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -682,7 +674,6 @@ function SolvePage() {
           </div>
         </div>
 
-        {/* Level — hidden for Socratic */}
         {mode !== "socratic" && (
           <div className="mt-6">
             <label className="mb-3 block text-sm font-medium">Explain like I'm...</label>
@@ -705,7 +696,6 @@ function SolvePage() {
           </div>
         )}
 
-        {/* Solve button */}
         <button
           disabled={!hasInput || loading}
           onClick={handleSolve}
@@ -715,7 +705,6 @@ function SolvePage() {
           {loading ? "Solving..." : "Solve it"}
         </button>
 
-        {/* Loading state */}
         {loading && (
           <div className="mt-8 rounded-xl border border-border bg-card p-6 text-center">
             <div className="flex items-center justify-center gap-1.5">
@@ -727,7 +716,6 @@ function SolvePage() {
           </div>
         )}
 
-        {/* Result */}
         {!loading && result && resultMode && (
           <div className="mt-8 space-y-4">
             {resultMode === "quick" && <QuickView r={result as QuickResult} />}
@@ -741,10 +729,7 @@ function SolvePage() {
             )}
 
             <div className="flex flex-wrap gap-2">
-              <button
-                onClick={speakResult}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
-              >
+              <button onClick={speakResult} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">
                 <Volume2 className="h-4 w-4" />
                 Listen
               </button>
@@ -763,10 +748,7 @@ function SolvePage() {
                 <Copy className="h-4 w-4" />
                 Copy
               </button>
-              <button
-                onClick={handleTrySimilar}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
-              >
+              <button onClick={handleTrySimilar} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">
                 <RefreshCw className="h-4 w-4" />
                 Try similar problem
               </button>
@@ -788,17 +770,11 @@ function SolvePage() {
                   Share link
                 </button>
               )}
-              <button
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
-              >
+              <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">
                 <Printer className="h-4 w-4" />
                 Save as PDF
               </button>
-              <button
-                onClick={() => setChatOpen((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
-              >
+              <button onClick={() => setChatOpen((v) => !v)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">
                 <MessageCircle className="h-4 w-4" />
                 Ask a follow-up
               </button>
@@ -970,7 +946,7 @@ function SocraticView({
 }) {
   const [studentAnswer, setStudentAnswer] = useState("");
   const [loading, setLoading] = useState(false);
-  const [conversation, setConversation] = useState
+  const [conversation, setConversation] = useState<
     { role: "user" | "assistant"; content: string }[]
   >([]);
   const callEval = useServerFn(evaluateSocraticAnswer);
