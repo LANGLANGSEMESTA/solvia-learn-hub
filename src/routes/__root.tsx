@@ -110,6 +110,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
             __html: `try{var t=localStorage.getItem('Solvai-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}`,
           }}
         />
+        <script
+          src="https://app.sandbox.midtrans.com/snap/snap.js"
+          data-client-key={import.meta.env.VITE_MIDTRANS_CLIENT_KEY}
+        />
       </head>
       <body>
         {children}
