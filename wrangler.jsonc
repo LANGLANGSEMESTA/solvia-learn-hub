@@ -1,8 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "solvia-learn-hub",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "define": {
+    "import.meta.env.VITE_SUPABASE_URL": "\"https://ttbxsinxvjwoyimupwzr.supabase.co\"",
+    "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": "\"sb_publishable_R_JXT0CSRs3blN1-sDbYsw_rZiDpncO\"",
+    "import.meta.env.VITE_SUPABASE_PROJECT_ID": "\"ttbxsinxvjwoyimupwzr\"",
+    "import.meta.env.VITE_MIDTRANS_CLIENT_KEY": "\"SB-Mid-client-toFuUska7vlgdsqx\""
+  }
 }
-
