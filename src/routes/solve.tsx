@@ -7,8 +7,6 @@ import {
   ArrowRight,
   Camera,
   Keyboard,
-  FileText,
-  Image as ImageIcon,
   Zap,
   BookOpen,
   HelpCircle,
@@ -135,11 +133,20 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
 type TabKey = "upload" | "type" | "camera";
 type Subject = "Math" | "Physics" | "Chemistry";
 type Mode = "quick" | "full" | "socratic";
+type Level = "kid" | "middle" | "high" | "university" | "expert";
 
 const TABS: { key: TabKey; label: string; icon: typeof Camera }[] = [
   { key: "upload", label: "Upload", icon: Upload },
   { key: "type", label: "Type", icon: Keyboard },
   { key: "camera", label: "Camera", icon: Camera },
+];
+
+const LEVELS: { key: Level; label: string }[] = [
+  { key: "kid", label: "A Kid" },
+  { key: "middle", label: "Middle School" },
+  { key: "high", label: "High School" },
+  { key: "university", label: "University" },
+  { key: "expert", label: "Expert" },
 ];
 
 type QuickResult = { trick: string; answer: string; note?: string };
@@ -195,6 +202,7 @@ function SolvePage() {
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
   }, [authLoading, user, navigate]);
+
   const [savedId, setSavedId] = useState<string | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [tab, setTab] = useState<TabKey>("upload");
@@ -204,6 +212,7 @@ function SolvePage() {
   const [captured, setCaptured] = useState<string | null>(null);
   const [subject, setSubject] = useState<Subject>("Math");
   const [mode, setMode] = useState<Mode>("full");
+  const [level, setLevel] = useState<Level>("high");
 
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -248,11 +257,13 @@ function SolvePage() {
       console.error(e);
     }
   }
+
   function stopCamera() {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     setCameraOn(false);
   }
+
   function capture() {
     const v = videoRef.current;
     const c = canvasRef.current;
@@ -265,7 +276,7 @@ function SolvePage() {
   }
 
   async function buildPayload() {
-    const payload: any = { mode, subject };
+    const payload: any = { mode, subject, level };
     if (tab === "type") payload.text = text.trim();
     else if (tab === "upload" && photo) {
       const { base64, mediaType } = await fileToBase64(photo);
@@ -351,11 +362,11 @@ function SolvePage() {
     setLoading(true);
     try {
       const ctx = lastContextRef.current;
-      // Ask for a similar problem then solve with same mode
       const similarPrompt = `Generate a different but similar ${ctx.subject} problem to the previous one and solve it using the same format.`;
       const res = await callSolve({
         data: {
           mode: resultMode || mode,
+          level,
           subject: ctx.subject,
           text: similarPrompt + (ctx.text ? `\n\nPrevious problem: ${ctx.text}` : ""),
           imageBase64: ctx.imageBase64,
@@ -392,11 +403,8 @@ function SolvePage() {
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      
-      // Detect language from text
-      const isIndonesian = /\b(dan|yang|adalah|dengan|untuk|tidak|ini|itu|dari|ke|di|pada|atau|juga|sudah|akan|dapat|karena|jadi|maka|setelah|sebelum|bila|jika|maka|nilai|bilangan|persamaan|jawaban)\b/i.test(text);
+      const isIndonesian = /\b(dan|yang|adalah|dengan|untuk|tidak|ini|itu|dari|ke|di|pada|atau|juga|sudah|akan|dapat|karena|jadi|maka|setelah|sebelum|bila|jika|nilai|bilangan|persamaan|jawaban)\b/i.test(text);
       const isChinese = /[\u4e00-\u9fff]/.test(text);
-      
       if (isIndonesian) {
         u.lang = "id-ID";
       } else if (isChinese) {
@@ -404,12 +412,9 @@ function SolvePage() {
       } else {
         u.lang = "en-US";
       }
-      
-      // Try to find a matching voice
       const voices = window.speechSynthesis.getVoices();
       const matchingVoice = voices.find(v => v.lang.startsWith(u.lang.split('-')[0]));
       if (matchingVoice) u.voice = matchingVoice;
-      
       window.speechSynthesis.speak(u);
     } catch {
       toast.error("Speech synthesis not supported in this browser.");
@@ -653,6 +658,29 @@ function SolvePage() {
           </div>
         </div>
 
+        {/* Level — hidden for Socratic */}
+        {mode !== "socratic" && (
+          <div className="mt-6">
+            <label className="mb-3 block text-sm font-medium">Explain like I'm...</label>
+            <div className="flex flex-wrap gap-2">
+              {LEVELS.map((l) => (
+                <button
+                  key={l.key}
+                  onClick={() => setLevel(l.key)}
+                  className={cn(
+                    "rounded-full border px-4 py-1.5 text-sm font-medium transition",
+                    level === l.key
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-card text-foreground/70 hover:bg-muted",
+                  )}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Solve button */}
         <button
           disabled={!hasInput || loading}
@@ -681,12 +709,12 @@ function SolvePage() {
             {resultMode === "quick" && <QuickView r={result as QuickResult} />}
             {resultMode === "full" && <FullView r={result as FullResult} />}
             {resultMode === "socratic" && (
-  <SocraticView
-    r={result as SocraticResult}
-    subject={subject}
-    originalProblem={lastContextRef.current?.text || ""}
-  />
-)}
+              <SocraticView
+                r={result as SocraticResult}
+                subject={subject}
+                originalProblem={lastContextRef.current?.text || ""}
+              />
+            )}
 
             <div className="flex flex-wrap gap-2">
               <button
@@ -918,7 +946,7 @@ function SocraticView({
 }) {
   const [studentAnswer, setStudentAnswer] = useState("");
   const [loading, setLoading] = useState(false);
-  const [conversation, setConversation] = useState<
+  const [conversation, setConversation] = useState
     { role: "user" | "assistant"; content: string }[]
   >([]);
   const callEval = useServerFn(evaluateSocraticAnswer);
@@ -966,7 +994,6 @@ function SocraticView({
       </div>
       <p className="px-1 text-sm italic text-muted-foreground">{r.encouragement}</p>
 
-      {/* Conversation history */}
       {conversation.length > 0 && (
         <div className="space-y-2 rounded-xl border border-border bg-card p-4">
           {conversation.map((m, i) => (
@@ -992,7 +1019,6 @@ function SocraticView({
         </div>
       )}
 
-      {/* Answer input */}
       <form onSubmit={handleSubmit} className="space-y-2">
         <label className="block text-xs font-medium text-foreground/70">
           {conversation.length === 0 ? "Your answer" : "Continue your answer"}
@@ -1020,4 +1046,3 @@ function SocraticView({
     </div>
   );
 }
-

@@ -6,9 +6,18 @@ const MODEL = "deepseek-v4-flash";
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 
 type Mode = "quick" | "full" | "socratic";
+type Level = "kid" | "middle" | "high" | "university" | "expert";
 
 const LANGUAGE_RULE =
   "IMPORTANT: Detect the language of the user's problem and respond in the SAME language. If the problem is in Indonesian, respond in Indonesian. If in English, respond in English. If in pure math notation, respond in English.";
+
+const LEVEL_DESCRIPTIONS: Record<Level, string> = {
+  kid: "Explain like I'm 10 years old. Use very simple words, fun analogies, and avoid jargon.",
+  middle: "Explain like I'm a middle school student (age 12-14). Use simple language and relatable examples.",
+  high: "Explain like I'm a high school student. Use standard curriculum language and formulas.",
+  university: "Explain like I'm a university student. Use precise mathematical language and full derivations.",
+  expert: "Explain at expert level. Be concise, use advanced notation, assume deep domain knowledge.",
+};
 
 const SYSTEM_PROMPTS: Record<Mode, string> = {
   quick:
@@ -29,6 +38,7 @@ Respond in plain text (no JSON).`;
 
 type SolveInput = {
   mode: Mode;
+  level?: Level;
   subject: string;
   text?: string;
   imageBase64?: string;
@@ -70,6 +80,9 @@ function buildUserContent(input: SolveInput, prefix: string): string {
   const parts: string[] = [];
   parts.push(`${prefix}`);
   parts.push(`Subject: ${input.subject}`);
+  if (input.level) {
+    parts.push(`Explanation level: ${LEVEL_DESCRIPTIONS[input.level]}`);
+  }
   if (input.text) {
     parts.push(`Problem: ${input.text}`);
   } else if (input.imageBase64 || input.pdfBase64) {
