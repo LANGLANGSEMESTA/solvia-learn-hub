@@ -19,6 +19,14 @@ const SYSTEM_PROMPTS: Record<Mode, string> = {
     `You are a Socratic tutor. Do NOT give the answer. Guide the student with questions and hints only. ${LANGUAGE_RULE} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"hint": string, "question": string, "encouragement": string}`,
 };
 
+export const SOCRATIC_EVAL_PROMPT = `You are a Socratic tutor evaluating a student's answer attempt.
+You have the original problem, the hint and guiding question you gave, and now the student's answer.
+IMPORTANT: Detect the language of the student's answer and respond in the SAME language.
+Do NOT give the final answer directly unless the student is very close or has already gotten it right.
+Instead: evaluate their attempt, point out what's right, correct misconceptions gently, and ask a follow-up guiding question if they're not there yet.
+If they got it right, congratulate them and confirm the answer.
+Respond in plain text (no JSON).`;
+
 type SolveInput = {
   mode: Mode;
   subject: string;
@@ -39,14 +47,14 @@ async function callDeepSeek(system: string, userContent: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-  model: MODEL,
-  max_tokens: 8192,
-  messages: [
-    { role: "system", content: system },
-    { role: "user", content: userContent },
-  ],
-  thinking: { type: "enabled", budget_tokens: 2000 },
-}),
+      model: MODEL,
+      max_tokens: 8192,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: userContent },
+      ],
+      thinking: { type: "enabled", budget_tokens: 2000 },
+    }),
   });
 
   if (!res.ok) {
@@ -55,7 +63,6 @@ async function callDeepSeek(system: string, userContent: string) {
   }
 
   const data = await res.json();
-  
   return data.choices?.[0]?.message?.content ?? "";
 }
 
@@ -72,18 +79,15 @@ function buildUserContent(input: SolveInput, prefix: string): string {
 }
 
 function extractJson(text: string): any {
-  // Remove markdown code fences
   let cleaned = text.trim()
     .replace(/^```(?:json)?\s*/im, "")
     .replace(/\s*```$/m, "")
     .trim();
 
-  // Try direct parse first
   try {
     return JSON.parse(cleaned);
   } catch {}
 
-  // Find the first { and last } and try parsing that
   const start = cleaned.indexOf("{");
   const end = cleaned.lastIndexOf("}");
   if (start !== -1 && end !== -1 && end > start) {
@@ -92,7 +96,6 @@ function extractJson(text: string): any {
     } catch {}
   }
 
-  // Try finding JSON array too
   const arrStart = cleaned.indexOf("[");
   const arrEnd = cleaned.lastIndexOf("]");
   if (arrStart !== -1 && arrEnd !== -1 && arrEnd > arrStart) {
@@ -126,8 +129,7 @@ export const solveProblem = createServerFn({ method: "POST" })
     const system = SYSTEM_PROMPTS[data.mode];
     const userContent = buildUserContent(data, "Solve this STEM problem.");
     const text = await callDeepSeek(system, userContent);
-
-return { result: extractJson(text), raw: text };
+    return { result: extractJson(text), raw: text };
   });
 
 type FollowUpInput = {
@@ -179,4 +181,60 @@ export const chatFollowUp = createServerFn({ method: "POST" })
     const json = await res.json();
     const text = json.choices?.[0]?.message?.content ?? "";
     return { reply: text };
+  });
+
+type SocraticEvalInput = {
+  subject: string;
+  originalProblem: string;
+  hint: string;
+  question: string;
+  studentAnswer: string;
+  conversationHistory: { role: "user" | "assistant"; content: string }[];
+};
+
+export const evaluateSocraticAnswer = createServerFn({ method: "POST" })
+  .inputValidator((d: SocraticEvalInput) => d)
+  .handler(async ({ data }) => {
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not configured");
+
+    const messages: any[] = [
+      { role: "system", content: SOCRATIC_EVAL_PROMPT },
+      {
+        role: "user",
+        content: `Subject: ${data.subject}\n\nOriginal problem: ${data.originalProblem}\n\nHint I gave: ${data.hint}\n\nGuiding question I asked: ${data.question}`,
+      },
+    ];
+
+    for (const m of data.conversationHistory) {
+      messages.push({ role: m.role, content: m.content });
+    }
+
+    messages.push({
+      role: "user",
+      content: `My answer attempt: ${data.studentAnswer}`,
+    });
+
+    const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1024,
+        messages,
+        thinking: { type: "enabled", budget_tokens: 500 },
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`DeepSeek API error [${res.status}]: ${errText}`);
+    }
+
+    const json = await res.json();
+    const text = json.choices?.[0]?.message?.content ?? "";
+    return { feedback: text };
   });

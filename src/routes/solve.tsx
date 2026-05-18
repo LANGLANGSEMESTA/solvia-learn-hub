@@ -27,7 +27,7 @@ import {
   Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { solveProblem, chatFollowUp } from "@/lib/solve.functions";
+import { solveProblem, chatFollowUp, evaluateSocraticAnswer } from "@/lib/solve.functions";
 import { createShareLink } from "@/lib/share.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -662,7 +662,13 @@ function SolvePage() {
           <div className="mt-8 space-y-4">
             {resultMode === "quick" && <QuickView r={result as QuickResult} />}
             {resultMode === "full" && <FullView r={result as FullResult} />}
-            {resultMode === "socratic" && <SocraticView r={result as SocraticResult} />}
+            {resultMode === "socratic" && (
+  <SocraticView
+    r={result as SocraticResult}
+    subject={subject}
+    originalProblem={lastContextRef.current?.text || ""}
+  />
+)}
 
             <div className="flex flex-wrap gap-2">
               <button
@@ -883,8 +889,49 @@ function FullView({ r }: { r: FullResult }) {
   );
 }
 
-function SocraticView({ r }: { r: SocraticResult }) {
+function SocraticView({
+  r,
+  subject,
+  originalProblem,
+}: {
+  r: SocraticResult;
+  subject: string;
+  originalProblem: string;
+}) {
   const [studentAnswer, setStudentAnswer] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [conversation, setConversation] = useState<
+    { role: "user" | "assistant"; content: string }[]
+  >([]);
+  const callEval = useServerFn(evaluateSocraticAnswer);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!studentAnswer.trim() || loading) return;
+    const answer = studentAnswer.trim();
+    setStudentAnswer("");
+    const newConversation = [...conversation, { role: "user" as const, content: answer }];
+    setConversation(newConversation);
+    setLoading(true);
+    try {
+      const res = await callEval({
+        data: {
+          subject,
+          originalProblem,
+          hint: r.hint,
+          question: r.question,
+          studentAnswer: answer,
+          conversationHistory: conversation,
+        },
+      });
+      setConversation([...newConversation, { role: "assistant", content: res.feedback }]);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to evaluate answer.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
@@ -900,8 +947,38 @@ function SocraticView({ r }: { r: SocraticResult }) {
         <p className="font-serif text-base text-primary whitespace-pre-wrap">{r.question}</p>
       </div>
       <p className="px-1 text-sm italic text-muted-foreground">{r.encouragement}</p>
-      <div>
-        <label className="mb-1.5 block text-xs font-medium text-foreground/70">Your answer</label>
+
+      {/* Conversation history */}
+      {conversation.length > 0 && (
+        <div className="space-y-2 rounded-xl border border-border bg-card p-4">
+          {conversation.map((m, i) => (
+            <div
+              key={i}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm",
+                m.role === "user"
+                  ? "ml-8 bg-primary/10 text-foreground"
+                  : "mr-8 bg-muted text-foreground",
+              )}
+            >
+              <div className="whitespace-pre-wrap">{m.content}</div>
+            </div>
+          ))}
+          {loading && (
+            <div className="mr-8 inline-flex gap-1 rounded-lg bg-muted px-3 py-2">
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60 [animation-delay:-0.3s]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60 [animation-delay:-0.15s]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Answer input */}
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <label className="block text-xs font-medium text-foreground/70">
+          {conversation.length === 0 ? "Your answer" : "Continue your answer"}
+        </label>
         <textarea
           value={studentAnswer}
           onChange={(e) => setStudentAnswer(e.target.value)}
@@ -909,7 +986,19 @@ function SocraticView({ r }: { r: SocraticResult }) {
           placeholder="Try working it out here..."
           className="w-full rounded-md border border-border bg-card p-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
-      </div>
+        <button
+          type="submit"
+          disabled={!studentAnswer.trim() || loading}
+          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
+          {loading ? "Evaluating..." : "Check my answer"}
+        </button>
+      </form>
     </div>
   );
 }
