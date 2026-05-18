@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const DAILY_LIMIT = 5;
+const DAILY_LIMIT = 10;
 const MODEL = "deepseek-v4-flash";
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 const GEMINI_MODEL = "gemini-2.0-flash";
