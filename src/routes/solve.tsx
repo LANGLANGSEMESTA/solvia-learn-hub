@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { createWorker } from "tesseract.js";
+import { WelcomeModal } from "@/components/WelcomeModal";
 import {
   Sigma,
   ArrowRight,
@@ -493,6 +494,7 @@ function SolvePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar refreshKey={savedId} />
+      <WelcomeModal userName={user?.user_metadata?.full_name || user?.email} />
       <main className="mx-auto w-full max-w-[680px] px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
         <div className="text-center">
           <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
