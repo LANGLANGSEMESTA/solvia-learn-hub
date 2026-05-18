@@ -295,6 +295,30 @@ function SolvePage() {
 
   async function handleSolve() {
     if (!hasInput || loading) return;
+
+    // Detect if problem is too complex for selected level
+    if (level === "kid" || level === "middle") {
+      const complexIndicators = [
+        /integral|derivative|calculus|diferensial/i,
+        /matrix|determinant|eigenvalue/i,
+        /prove|buktikan|proof|teorema/i,
+        /olimpiade|olympiad|competition|kompetisi/i,
+        /[∫∑∏∂∇∞]/,
+        /segitiga.*luas.*titik|rectangle.*area.*point/i,
+        /limit|continuity|differentiable/i,
+      ];
+      const inputText = text.trim();
+      const isComplex = complexIndicators.some(pattern => pattern.test(inputText));
+      if (isComplex) {
+        toast.warning(
+          level === "kid"
+            ? "This problem looks advanced. 'A Kid' level works best for basic problems. Consider switching to High School or above."
+            : "This problem may be too complex for Middle School level. Consider switching to High School or above.",
+          { duration: 5000 }
+        );
+      }
+    }
+
     setLoading(true);
     setResult(null);
     setChatOpen(false);
