@@ -392,6 +392,24 @@ function SolvePage() {
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
+      
+      // Detect language from text
+      const isIndonesian = /\b(dan|yang|adalah|dengan|untuk|tidak|ini|itu|dari|ke|di|pada|atau|juga|sudah|akan|dapat|karena|jadi|maka|setelah|sebelum|bila|jika|maka|nilai|bilangan|persamaan|jawaban)\b/i.test(text);
+      const isChinese = /[\u4e00-\u9fff]/.test(text);
+      
+      if (isIndonesian) {
+        u.lang = "id-ID";
+      } else if (isChinese) {
+        u.lang = "zh-CN";
+      } else {
+        u.lang = "en-US";
+      }
+      
+      // Try to find a matching voice
+      const voices = window.speechSynthesis.getVoices();
+      const matchingVoice = voices.find(v => v.lang.startsWith(u.lang.split('-')[0]));
+      if (matchingVoice) u.voice = matchingVoice;
+      
       window.speechSynthesis.speak(u);
     } catch {
       toast.error("Speech synthesis not supported in this browser.");
