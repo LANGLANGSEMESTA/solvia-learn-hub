@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Sigma, ArrowLeft, Loader2, Flame, BookOpen, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Flame, BookOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { deleteAccount } from "@/lib/account.functions";
+
+const ADMIN_EMAILS = ["irsanwu@gmail.com", "irsanwuu@gmail.com"];
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -90,7 +92,7 @@ function ProfilePage() {
         <h1 className="font-serif text-3xl font-semibold tracking-tight">Your profile</h1>
         <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
 
-        <PremiumStatus userId={user.id} />
+        <PremiumStatus userId={user.id} email={user.email || ""} />
 
         <section className="mt-8 grid grid-cols-3 gap-3">
           <StatCard icon={<BookOpen className="h-4 w-4" />} label="Solved" value={solved} />
@@ -202,7 +204,7 @@ function StatCard({
   );
 }
 
-function PremiumStatus({ userId }: { userId: string }) {
+function PremiumStatus({ userId, email }: { userId: string; email: string }) {
   const [subscription, setSubscription] = useState<{
     is_premium: boolean;
     premium_until: string | null;
@@ -217,16 +219,26 @@ function PremiumStatus({ userId }: { userId: string }) {
       .then(({ data }) => setSubscription(data));
   }, [userId]);
 
-  const isPremium = subscription?.is_premium &&
+  const isAdmin = ADMIN_EMAILS.includes(email);
+  const isPremium = isAdmin || (subscription?.is_premium &&
     subscription?.premium_until &&
-    new Date(subscription.premium_until) > new Date();
+    new Date(subscription.premium_until) > new Date());
 
   return (
     <section className="mt-8 rounded-xl border border-border/60 bg-card p-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-serif text-lg font-semibold">Membership</h2>
-          {isPremium ? (
+          <div className="flex items-center gap-2">
+            <h2 className="font-serif text-lg font-semibold">Membership</h2>
+            {isAdmin && (
+              <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                Admin
+              </span>
+            )}
+          </div>
+          {isAdmin ? (
+            <p className="mt-1 text-sm text-primary font-medium">✦ Full access</p>
+          ) : isPremium ? (
             <>
               <p className="mt-1 text-sm text-primary font-medium">✦ Premium</p>
               <p className="text-xs text-muted-foreground">
