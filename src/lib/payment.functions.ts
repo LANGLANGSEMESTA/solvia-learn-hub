@@ -4,14 +4,25 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY!;
 const MIDTRANS_BASE_URL = "https://app.sandbox.midtrans.com/snap/v1";
 
+type PaymentInput = {
+  price?: number;
+  months?: number;
+};
+
 export const createPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: PaymentInput) => d)
+  .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
+    const price = data?.price || 29000;
+    const months = data?.months || 1;
     const orderId = `SOLVAI-${user.id.slice(0, 8)}-${Date.now()}`;
+    const itemName = months >= 12
+      ? "Solvai Premium - 1 Year"
+      : `Solvai Premium - ${months} Month${months > 1 ? "s" : ""}`;
 
     const res = await fetch(`${MIDTRANS_BASE_URL}/transactions`, {
       method: "POST",
@@ -22,7 +33,7 @@ export const createPayment = createServerFn({ method: "POST" })
       body: JSON.stringify({
         transaction_details: {
           order_id: orderId,
-          gross_amount: 29000,
+          gross_amount: price,
         },
         customer_details: {
           email: user.email,
@@ -30,9 +41,9 @@ export const createPayment = createServerFn({ method: "POST" })
         item_details: [
           {
             id: "SOLVAI-PREMIUM",
-            price: 29000,
+            price: price,
             quantity: 1,
-            name: "Solvai Premium - 1 Bulan",
+            name: itemName,
           },
         ],
       }),
@@ -43,6 +54,6 @@ export const createPayment = createServerFn({ method: "POST" })
       throw new Error(`Midtrans error: ${err}`);
     }
 
-    const data = await res.json();
-    return { token: data.token, orderId };
+    const data2 = await res.json();
+    return { token: data2.token, orderId };
   });

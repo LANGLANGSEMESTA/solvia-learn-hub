@@ -4,10 +4,10 @@ import { createClient } from "@supabase/supabase-js";
 
 const ADMIN_EMAILS = ["irsanwu@gmail.com", "irsanwuu@gmail.com"];
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://ttbxsinxvjwoyimupwzr.supabase.co";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 async function requireAdmin(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser();
