@@ -95,11 +95,11 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
             <Link to="/profile" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">
               Profile
             </Link>
-            {user && (user.email === "irsanwu@gmail.com" || user.email === "irsanwuu@gmail.com") && (
-  <Link to="/admin" className="rounded-md px-3 py-2 text-sm font-medium text-primary transition hover:bg-muted">
-    Admin
-  </Link>
-)}
+          )}
+          {user && (user.email === "irsanwu@gmail.com" || user.email === "irsanwuu@gmail.com") && (
+            <Link to="/admin" className="rounded-md px-3 py-2 text-sm font-medium text-primary transition hover:bg-muted">
+              Admin
+            </Link>
           )}
         </nav>
         <div className="flex items-center gap-2">
