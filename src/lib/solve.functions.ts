@@ -220,7 +220,7 @@ const { data: subscription } = await supabase
   .from("subscriptions")
   .select("is_premium, premium_until")
   .eq("user_id", user!.id)
-  .single();
+  .maybeSingle();
 
 const isPremium = subscription?.is_premium && 
   subscription?.premium_until && 
@@ -368,7 +368,7 @@ export const evaluateSocraticAnswer = createServerFn({ method: "POST" })
       .from("subscriptions")
       .select("is_premium, premium_until")
       .eq("user_id", user!.id)
-      .single();
+      .maybeSingle();
 
     const isPremium = subscription?.is_premium &&
       subscription?.premium_until &&
