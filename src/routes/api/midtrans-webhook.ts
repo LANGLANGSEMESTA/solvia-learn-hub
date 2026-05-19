@@ -7,6 +7,12 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// URLs web lain yang perlu diforward
+const OTHER_WEBHOOK_URLS: string[] = [
+  // tambahkan URL webhook web lain di sini kalau perlu
+  // contoh: "https://web-lain.com/api/midtrans-webhook"
+];
+
 export const APIRoute = createAPIFileRoute("/api/midtrans-webhook")({
   POST: async ({ request }) => {
     const body = await request.json();
@@ -24,11 +30,24 @@ export const APIRoute = createAPIFileRoute("/api/midtrans-webhook")({
       return new Response("Invalid signature", { status: 401 });
     }
 
-    // Extract user_id from order_id: SOLVAI-{userId8chars}-{timestamp}
+    // Forward ke web lain kalau bukan order Solvai
+    if (!order_id.startsWith("SOLVAI-")) {
+      await Promise.all(
+        OTHER_WEBHOOK_URLS.map(url =>
+          fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }).catch(console.error)
+        )
+      );
+      return new Response("Forwarded", { status: 200 });
+    }
+
+    // Process Solvai order
     const parts = order_id.split("-");
     const userIdPrefix = parts[1];
 
-    // Get user by id prefix
     const { data: users } = await supabaseAdmin.auth.admin.listUsers();
     const user = users?.users?.find(u => u.id.startsWith(userIdPrefix));
 
@@ -37,12 +56,14 @@ export const APIRoute = createAPIFileRoute("/api/midtrans-webhook")({
     }
 
     const isSuccess =
-      transaction_status === "capture" && fraud_status === "accept" ||
+      (transaction_status === "capture" && fraud_status === "accept") ||
       transaction_status === "settlement";
 
     if (isSuccess) {
+      // Detect months from gross_amount
+      const months = gross_amount >= 200000 ? 12 : 1;
       const premiumUntil = new Date();
-      premiumUntil.setMonth(premiumUntil.getMonth() + 1);
+      premiumUntil.setMonth(premiumUntil.getMonth() + months);
 
       await supabaseAdmin
         .from("subscriptions")
