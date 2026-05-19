@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Sigma, Users, Crown, BarChart2, Search, Check, X, Loader2 } from "lucide-react";
 import { getUsers, updateUserPremium } from "@/lib/admin.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Users, Crown, BarChart2, Search, Check, X, Loader2 } from "lucide-react";
 
 const ADMIN_EMAILS = ["irsanwu@gmail.com", "irsanwuu@gmail.com"];
 
@@ -103,11 +103,9 @@ function AdminPage() {
       <header className="border-b border-border/60 bg-background/80 backdrop-blur sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Sigma className="h-4 w-4" strokeWidth={2.5} />
-            </div>
-            <span className="font-serif text-xl font-semibold">Solvai</span>
-            <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Admin</span>
+            <img src="/solvai-icon.png" alt="Solvai" className="h-8 w-8 rounded-lg" />
+<span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
+<span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Admin</span>
           </Link>
           <span className="text-sm text-muted-foreground">{user?.email}</span>
         </div>
