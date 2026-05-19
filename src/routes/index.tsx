@@ -371,6 +371,7 @@ function PriceCard({
   features,
   featured,
   cta,
+  savings,
 }: {
   name: string;
   price: string;
@@ -378,6 +379,7 @@ function PriceCard({
   features: string[];
   featured?: boolean;
   cta: string;
+  savings?: string;
 }) {
   return (
     <div
@@ -396,6 +398,9 @@ function PriceCard({
         <span className="font-serif text-4xl font-semibold">{price}</span>
         <span className="text-sm text-muted-foreground">/{period}</span>
       </div>
+      {savings && (
+        <p className="mt-1 text-xs font-medium text-emerald-600">{savings}</p>
+      )}
       <ul className="mt-6 space-y-3 text-sm">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2">
@@ -408,20 +413,23 @@ function PriceCard({
           </li>
         ))}
       </ul>
-      <button
-        className={`mt-8 w-full rounded-md px-4 py-2.5 text-sm font-medium transition ${
+      <Link
+        to="/upgrade"
+        className={`mt-8 w-full rounded-md px-4 py-2.5 text-center text-sm font-medium transition ${
           featured
             ? "bg-primary text-primary-foreground hover:bg-primary/90"
             : "border border-border bg-background hover:bg-muted"
         }`}
       >
         {cta}
-      </button>
+      </Link>
     </div>
   );
 }
 
 function Pricing() {
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+
   return (
     <section className="px-4 py-20 sm:px-6">
       <div className="mx-auto max-w-4xl">
@@ -433,7 +441,37 @@ function Pricing() {
             Start free. Upgrade when you want unlimited everything.
           </p>
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2">
+
+        {/* Billing toggle */}
+        <div className="mt-8 flex justify-center">
+          <div className="flex rounded-xl border border-border bg-card p-1">
+            <button
+              onClick={() => setBilling("monthly")}
+              className={`rounded-lg px-5 py-2 text-sm font-medium transition ${
+                billing === "monthly"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-foreground/70 hover:bg-muted"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBilling("yearly")}
+              className={`relative rounded-lg px-5 py-2 text-sm font-medium transition ${
+                billing === "yearly"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-foreground/70 hover:bg-muted"
+              }`}
+            >
+              Yearly
+              <span className="absolute -top-2.5 -right-2 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                -31%
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-5 sm:grid-cols-2">
           <PriceCard
             name="Free"
             price="Rp0"
@@ -441,18 +479,19 @@ function Pricing() {
             cta="Get started"
             features={[
               "10 problems per day",
-              "2 learning modes",
-              "3 follow-up questions",
-              "1 similar problem",
+              "All 3 learning modes",
+              "Follow-up chat",
+              "Similar problem generator",
               "Daily streak tracking",
             ]}
           />
-            <PriceCard
-  name="Premium"
-  price="Rp29.000"
-  period="Month"
+          <PriceCard
+            name="Premium"
+            price={billing === "monthly" ? "Rp29.000" : "Rp239.000"}
+            period={billing === "monthly" ? "month" : "year"}
             featured
             cta="Go premium"
+            savings={billing === "yearly" ? "Save Rp109.000" : undefined}
             features={[
               "Unlimited problems",
               "All 3 learning modes",
