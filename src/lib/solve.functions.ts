@@ -349,3 +349,34 @@ export const evaluateSocraticAnswer = createServerFn({ method: "POST" })
     const text = json.choices?.[0]?.message?.content ?? "";
     return { feedback: text };
   });
+  export const getDailyUsage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const startOfDay = new Date();
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { count } = await supabase
+      .from("problems")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id)
+      .gte("created_at", startOfDay.toISOString());
+
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("is_premium, premium_until")
+      .eq("user_id", user!.id)
+      .single();
+
+    const isPremium = subscription?.is_premium &&
+      subscription?.premium_until &&
+      new Date(subscription.premium_until) > new Date();
+
+    return {
+      used: count ?? 0,
+      limit: DAILY_LIMIT,
+      isPremium: !!isPremium,
+    };
+  });

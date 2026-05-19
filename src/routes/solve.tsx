@@ -27,7 +27,7 @@ import {
   Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { solveProblem, chatFollowUp, evaluateSocraticAnswer } from "@/lib/solve.functions";
+import { solveProblem, chatFollowUp, evaluateSocraticAnswer, getDailyUsage } from "@/lib/solve.functions";
 import { createShareLink } from "@/lib/share.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -247,6 +247,14 @@ function SolvePage() {
   const callSolve = useServerFn(solveProblem);
   const callChat = useServerFn(chatFollowUp);
   const callShare = useServerFn(createShareLink);
+  const [dailyUsage, setDailyUsage] = useState<{ used: number; limit: number; isPremium: boolean } | null>(null);
+const callGetDailyUsage = useServerFn(getDailyUsage);
+
+useEffect(() => {
+  if (user) {
+    callGetDailyUsage({ data: undefined }).then(setDailyUsage).catch(console.error);
+  }
+}, [user, savedId]);
 
   const hasInput =
     (tab === "upload" && (!!photo || !!pdf)) ||
@@ -506,6 +514,29 @@ function SolvePage() {
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             Upload, type, or snap your STEM question.
           </p>
+          {dailyUsage && !dailyUsage.isPremium && (
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="flex gap-1">
+                {Array.from({ length: dailyUsage.limit }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-1.5 w-4 rounded-full transition",
+                      i < dailyUsage.used ? "bg-primary" : "bg-border"
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {dailyUsage.used}/{dailyUsage.limit} today
+              </span>
+              {dailyUsage.used >= dailyUsage.limit && (
+                <Link to="/upgrade" className="text-xs font-medium text-primary hover:underline">
+                  Upgrade →
+                </Link>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mt-8 grid grid-cols-3 gap-1 rounded-lg border border-border bg-card p-1">
