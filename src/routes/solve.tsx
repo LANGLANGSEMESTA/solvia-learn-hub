@@ -247,6 +247,7 @@ function SolvePage() {
   const callSolve = useServerFn(solveProblem);
   const callChat = useServerFn(chatFollowUp);
   const callShare = useServerFn(createShareLink);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [dailyUsage, setDailyUsage] = useState<{ used: number; limit: number; isPremium: boolean } | null>(null);
 const callGetDailyUsage = useServerFn(getDailyUsage);
 
@@ -372,7 +373,11 @@ useEffect(() => {
       }
     } catch (e: any) {
       console.error(e);
-      toast.error(e?.message || "Something went wrong. Please try again.");
+      if (e?.message?.includes("Daily limit reached")) {
+        setShowUpgradeModal(true);
+      } else {
+        toast.error(e?.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -879,6 +884,36 @@ useEffect(() => {
             )}
           </div>
         )}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+              <h2 className="font-serif text-xl font-semibold">Daily limit reached</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                You've used all {dailyUsage?.limit ?? 10} free problems today. Upgrade to Premium for unlimited access.
+              </p>
+            </div>
+            <div className="mt-6 flex flex-col gap-2">
+              <Link
+                to="/upgrade"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                <Sparkles className="h-4 w-4" />
+                Upgrade to Premium
+              </Link>
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium hover:bg-muted"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </main>
     </div>
   );
