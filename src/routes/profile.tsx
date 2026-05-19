@@ -74,9 +74,7 @@ function ProfilePage() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Sigma className="h-4 w-4" strokeWidth={2.5} />
-            </div>
+            <img src="/solvai-icon.png" alt="Solvai" className="h-8 w-8 rounded-lg" />
             <span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
           </Link>
           <div className="flex items-center gap-2">
@@ -91,6 +89,8 @@ function ProfilePage() {
       <main className="mx-auto w-full max-w-2xl px-4 pt-10 pb-24 sm:px-6">
         <h1 className="font-serif text-3xl font-semibold tracking-tight">Your profile</h1>
         <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+
+        <PremiumStatus userId={user.id} />
 
         <section className="mt-8 grid grid-cols-3 gap-3">
           <StatCard icon={<BookOpen className="h-4 w-4" />} label="Solved" value={solved} />
@@ -202,3 +202,50 @@ function StatCard({
   );
 }
 
+function PremiumStatus({ userId }: { userId: string }) {
+  const [subscription, setSubscription] = useState<{
+    is_premium: boolean;
+    premium_until: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("subscriptions")
+      .select("is_premium, premium_until")
+      .eq("user_id", userId)
+      .single()
+      .then(({ data }) => setSubscription(data));
+  }, [userId]);
+
+  const isPremium = subscription?.is_premium &&
+    subscription?.premium_until &&
+    new Date(subscription.premium_until) > new Date();
+
+  return (
+    <section className="mt-8 rounded-xl border border-border/60 bg-card p-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-serif text-lg font-semibold">Membership</h2>
+          {isPremium ? (
+            <>
+              <p className="mt-1 text-sm text-primary font-medium">✦ Premium</p>
+              <p className="text-xs text-muted-foreground">
+                Expires {new Date(subscription!.premium_until!).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+              </p>
+            </>
+          ) : (
+            <p className="mt-1 text-sm text-muted-foreground">Free plan · 10 problems/day</p>
+          )}
+        </div>
+        {!isPremium && (
+          <Link
+            to="/upgrade"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Upgrade →
+          </Link>
+        )}
+      </div>
+    </section>
+  );
+}
