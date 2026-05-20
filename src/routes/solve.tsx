@@ -979,48 +979,46 @@ function QuickView({ r }: { r: QuickResult }) {
 
 function DesmosGraph({ expressions }: { expressions: string[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
+  const calcRef = useRef<any>(null);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted || !containerRef.current) return;
-    const existing = document.getElementById("desmos-script");
     const init = () => {
       if (!containerRef.current) return;
-      const calc = (window as any).Desmos.GraphingCalculator(containerRef.current, {
+      if (calcRef.current) calcRef.current.destroy();
+      calcRef.current = (window as any).Desmos.GraphingCalculator(containerRef.current, {
         keypad: false,
         expressions: false,
         settingsMenu: false,
         zoomButtons: true,
       });
       expressions.forEach((expr, i) => {
-        calc.setExpression({ id: `e${i}`, latex: expr });
+        calcRef.current.setExpression({ id: `e${i}`, latex: expr });
       });
     };
+
     if ((window as any).Desmos) {
       init();
-    } else if (!existing) {
-      const script = document.createElement("script");
-      script.id = "desmos-script";
-      script.src = "https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6";
-      script.async = true;
-      script.onload = init;
-      document.head.appendChild(script);
     } else {
-      existing.addEventListener("load", init);
+      const existing = document.getElementById("desmos-script");
+      if (!existing) {
+        const script = document.createElement("script");
+        script.id = "desmos-script";
+        script.src = "https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6";
+        script.async = true;
+        script.onload = init;
+        document.head.appendChild(script);
+      }
     }
-  }, [mounted, expressions.join(",")]);
 
-  if (!mounted) return (
-    <div style={{ width: "100%", height: "380px" }} className="rounded-xl border border-border bg-muted animate-pulse" />
-  );
+    return () => {
+      if (calcRef.current) calcRef.current.destroy();
+    };
+  }, [expressions.join(",")]);
 
   return (
     <div
       ref={containerRef}
+      suppressHydrationWarning
       style={{ width: "100%", height: "380px" }}
       className="rounded-xl border border-border overflow-hidden"
     />
