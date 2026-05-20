@@ -216,18 +216,14 @@ function formatResultForClipboard(r: AnyResult, mode: Mode | null): string {
 }
 function detectPlottableExpressions(problemText: string): string[] {
   const found: string[] = [];
-  const text = problemText.toLowerCase();
-  
-  // Match y = ... patterns
-  const yEqPattern = /y\s*=\s*[x\d\+\-\*\^\/\.\s]+/gi;
+  const yEqPattern = /y\s*=\s*[^\n,;]+/gi;
   const matches = problemText.match(yEqPattern);
   if (matches) {
     matches.forEach(m => {
-      const clean = m.replace(/\s+/g, "").replace(/\^/g, "^");
+      const clean = m.trim().replace(/\s+/g, " ");
       if (!found.includes(clean)) found.push(clean);
     });
   }
-  
   return found.slice(0, 4);
 }
 function SolvePage() {
