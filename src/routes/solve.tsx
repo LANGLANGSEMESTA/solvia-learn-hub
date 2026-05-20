@@ -3,9 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { createWorker } from "tesseract.js";
+import { BlockMath } from 'react-katex';
 import { MathRenderer } from "@/components/MathRenderer";
-import katex from "katex";
-import "katex/dist/katex.min.css";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import {
   Sigma,
@@ -991,22 +990,7 @@ function FullView({ r }: { r: FullResult }) {
                 <p className="mt-1 text-sm text-foreground/80"><MathRenderer text={s.content} /></p>
                 {s.formula && (
   <div className="mt-2 overflow-x-auto rounded-md border border-border bg-muted px-3 py-2">
-    <span dangerouslySetInnerHTML={{
-      __html: (() => {
-        const katex = (window as any).katex;
-        if (!katex) return s.formula;
-        let f = s.formula.trim();
-        if (f.startsWith("$$") && f.endsWith("$$")) f = f.slice(2, -2).trim();
-        else if (f.startsWith("$") && f.endsWith("$")) f = f.slice(1, -1).trim();
-        else if (f.startsWith("\\[") && f.endsWith("\\]")) f = f.slice(2, -2).trim();
-        else if (f.startsWith("\\(") && f.endsWith("\\)")) f = f.slice(2, -2).trim();
-        try {
-          return katex.renderToString(f, { displayMode: true, throwOnError: false });
-        } catch {
-          return `<code>${s.formula}</code>`;
-        }
-      })()
-    }} />
+    <BlockMath math={s.formula.trim()} />
   </div>
 )}
               </div>
