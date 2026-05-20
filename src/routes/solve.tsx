@@ -978,9 +978,14 @@ function QuickView({ r }: { r: QuickResult }) {
 
 function DesmosGraph({ expressions }: { expressions: string[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !containerRef.current) return;
     const existing = document.getElementById("desmos-script");
     const init = () => {
       if (!containerRef.current) return;
@@ -1006,7 +1011,11 @@ function DesmosGraph({ expressions }: { expressions: string[] }) {
     } else {
       existing.addEventListener("load", init);
     }
-  }, [expressions.join(",")]);
+  }, [mounted, expressions.join(",")]);
+
+  if (!mounted) return (
+    <div style={{ width: "100%", height: "380px" }} className="rounded-xl border border-border bg-muted animate-pulse" />
+  );
 
   return (
     <div
