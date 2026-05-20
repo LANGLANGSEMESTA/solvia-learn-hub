@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { createWorker } from "tesseract.js";
+import { MathRenderer } from "@/components/MathRenderer";
+import katex from "katex";
+import "katex/dist/katex.min.css";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import {
   Sigma,
@@ -954,15 +957,15 @@ function QuickView({ r }: { r: QuickResult }) {
         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-700">
           <Zap className="h-3.5 w-3.5" /> Quick trick
         </div>
-        <p className="text-sm text-amber-950 whitespace-pre-wrap">{r.trick}</p>
+        <p className="text-sm text-amber-950"><MathRenderer text={r.trick} /></p>
       </div>
       <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4">
         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700">
           <CheckCircle2 className="h-3.5 w-3.5" /> Answer
         </div>
-        <p className="font-serif text-lg font-semibold text-emerald-950 whitespace-pre-wrap">{r.answer}</p>
+        <p className="font-serif text-lg font-semibold text-emerald-950"><MathRenderer text={r.answer} /></p>
       </div>
-      {r.note && <p className="px-1 text-xs text-muted-foreground">{r.note}</p>}
+      {r.note && <p className="px-1 text-xs text-muted-foreground"><MathRenderer text={r.note} /></p>}
     </div>
   );
 }
@@ -974,7 +977,7 @@ function FullView({ r }: { r: FullResult }) {
         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
           <Lightbulb className="h-3.5 w-3.5" /> Concept
         </div>
-        <p className="text-sm text-foreground whitespace-pre-wrap">{r.concept}</p>
+        <p className="text-sm text-foreground"><MathRenderer text={r.concept} /></p>
       </div>
       <ol className="space-y-3">
         {r.steps.map((s, i) => (
@@ -985,12 +988,27 @@ function FullView({ r }: { r: FullResult }) {
               </span>
               <div className="flex-1">
                 <h3 className="font-serif text-base font-semibold">{s.title}</h3>
-                <p className="mt-1 text-sm text-foreground/80 whitespace-pre-wrap">{s.content}</p>
+                <p className="mt-1 text-sm text-foreground/80"><MathRenderer text={s.content} /></p>
                 {s.formula && (
-                  <pre className="mt-2 overflow-x-auto rounded-md border border-border bg-muted px-3 py-2 text-sm font-mono">
-                    {s.formula}
-                  </pre>
-                )}
+  <div className="mt-2 overflow-x-auto rounded-md border border-border bg-muted px-3 py-2">
+    <span dangerouslySetInnerHTML={{
+      __html: (() => {
+        const katex = (window as any).katex;
+        if (!katex) return s.formula;
+        let f = s.formula.trim();
+        if (f.startsWith("$$") && f.endsWith("$$")) f = f.slice(2, -2).trim();
+        else if (f.startsWith("$") && f.endsWith("$")) f = f.slice(1, -1).trim();
+        else if (f.startsWith("\\[") && f.endsWith("\\]")) f = f.slice(2, -2).trim();
+        else if (f.startsWith("\\(") && f.endsWith("\\)")) f = f.slice(2, -2).trim();
+        try {
+          return katex.renderToString(f, { displayMode: true, throwOnError: false });
+        } catch {
+          return `<code>${s.formula}</code>`;
+        }
+      })()
+    }} />
+  </div>
+)}
               </div>
             </div>
           </li>
@@ -1000,7 +1018,7 @@ function FullView({ r }: { r: FullResult }) {
         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700">
           <CheckCircle2 className="h-3.5 w-3.5" /> Final answer
         </div>
-        <p className="font-serif text-lg font-semibold text-emerald-950 whitespace-pre-wrap">{r.answer}</p>
+        <p className="font-serif text-lg font-semibold text-emerald-950"><MathRenderer text={r.answer} /></p>
       </div>
     </div>
   );
@@ -1055,13 +1073,13 @@ function SocraticView({
         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-700">
           <Lightbulb className="h-3.5 w-3.5" /> Hint
         </div>
-        <p className="text-sm text-amber-950 whitespace-pre-wrap">{r.hint}</p>
+        <p className="text-sm text-amber-950"><MathRenderer text={r.hint} /></p>
       </div>
       <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
           <HelpCircle className="h-3.5 w-3.5" /> Think about this
         </div>
-        <p className="font-serif text-base text-primary whitespace-pre-wrap">{r.question}</p>
+        <p className="font-serif text-base text-primary"><MathRenderer text={r.question} /></p>
       </div>
       <p className="px-1 text-sm italic text-muted-foreground">{r.encouragement}</p>
 

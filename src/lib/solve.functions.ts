@@ -23,11 +23,11 @@ const LEVEL_DESCRIPTIONS: Record<Level, string> = {
 
 const SYSTEM_PROMPTS: Record<Mode, string> = {
   quick:
-    `You are a STEM tutor. Give a fast trick or shortcut to solve this problem. Be concise. ${LANGUAGE_RULE} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"trick": string, "answer": string, "note"?: string}`,
+    `You are a STEM tutor. Give a fast trick or shortcut to solve this problem. Be concise. ${LANGUAGE_RULE} Use LaTeX for ALL math expressions. Wrap inline math with $...$ and display math with $$...$$. Example: $\frac{1}{2}$, $$\int_0^\pi \sin^2(x)\,dx = \frac{\pi}{2}$$. Never write raw LaTeX without delimiters. Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"trick": string, "answer": string, "note"?: string}`,
   full:
-    `You are a STEM teacher. Explain step by step like in school curriculum. ${LANGUAGE_RULE} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"concept": string, "steps": [{"title": string, "content": string, "formula"?: string}], "answer": string}`,
+    `You are a STEM teacher. Explain step by step like in school curriculum. ${LANGUAGE_RULE} Use LaTeX for ALL math expressions. Wrap inline math with $...$ and display math with $$...$$. Example: $\frac{1}{2}$, $$\int_0^\pi \sin^2(x)\,dx = \frac{\pi}{2}$$. Never write raw LaTeX without delimiters. Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"concept": string, "steps": [{"title": string, "content": string, "formula"?: string}], "answer": string}`,
   socratic:
-    `You are a Socratic tutor. Do NOT give the answer. Guide the student with questions and hints only. ${LANGUAGE_RULE} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"hint": string, "question": string, "encouragement": string}`,
+    `You are a Socratic tutor. Do NOT give the answer. Guide the student with questions and hints only. ${LANGUAGE_RULE} Use LaTeX for ALL math expressions. Wrap inline math with $...$ and display math with $$...$$. Never write raw LaTeX without delimiters. Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"hint": string, "question": string, "encouragement": string}`,
 };
 
 export const SOCRATIC_EVAL_PROMPT = `You are a Socratic tutor evaluating a student's answer attempt.
@@ -135,14 +135,13 @@ async function callDeepSeek(system: string, userContent: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 8192,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: userContent },
-      ],
-      thinking: { type: "enabled", budget_tokens: 2000 },
-    }),
+  model: MODEL,
+  max_tokens: 8192,
+  messages: [
+    { role: "system", content: system },
+    { role: "user", content: userContent },
+  ],
+}),
   });
 
   if (!res.ok) {
@@ -336,8 +335,7 @@ export const evaluateSocraticAnswer = createServerFn({ method: "POST" })
         model: MODEL,
         max_tokens: 1024,
         messages,
-        thinking: { type: "enabled", budget_tokens: 500 },
-      }),
+        }),
     });
 
     if (!res.ok) {

@@ -80,12 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Solvai — Solve it. Understand it. Master it." },
       { property: "og:description", content: "Solvai is an AI-powered STEM tutor web app for students." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://solvai.app" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@SolvAi" },
       { name: "twitter:title", content: "SolvAi — AI tutor for Math, Physics & Chemistry" },
       { name: "twitter:description", content: "Solvai is an AI-powered STEM tutor web app for students." },
-      { property: "og:image", content: "" },
-      { name: "twitter:image", content: "" },
+      { property: "og:image", content: "https://solvai.app/solvai-icon.png" },
+      { name: "twitter:image", content: "https://solvai.app/solvai-icon.png" },
      { name: "theme-color", content: "#5349B7" }, 
     ],
     links: [
@@ -108,6 +109,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" />
         <HeadContent />
         <script
           dangerouslySetInnerHTML={{
