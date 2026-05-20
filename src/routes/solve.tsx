@@ -214,7 +214,22 @@ function formatResultForClipboard(r: AnyResult, mode: Mode | null): string {
   }
   return JSON.stringify(r, null, 2);
 }
-
+function detectPlottableExpressions(problemText: string): string[] {
+  const found: string[] = [];
+  const text = problemText.toLowerCase();
+  
+  // Match y = ... patterns
+  const yEqPattern = /y\s*=\s*[x\d\+\-\*\^\/\.\s]+/gi;
+  const matches = problemText.match(yEqPattern);
+  if (matches) {
+    matches.forEach(m => {
+      const clean = m.replace(/\s+/g, "").replace(/\^/g, "^");
+      if (!found.includes(clean)) found.push(clean);
+    });
+  }
+  
+  return found.slice(0, 4);
+}
 function SolvePage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -344,7 +359,7 @@ function SolvePage() {
       }
     }
 
-    setLoading(true);
+    setLoading(true); 
     setResult(null);
     setChatOpen(false);
     setChatHistory([]);
@@ -359,10 +374,14 @@ function SolvePage() {
         pdfBase64: payload.pdfBase64,
         subject,
       };
-      const res = await callSolve({ data: payload });
-      console.log("RESULT:", JSON.stringify(res.result));  // ← tambah ini
-      setResult(res.result as AnyResult);
-      setResultMode(mode);
+     const res = await callSolve({ data: payload });
+const fullRes = res.result as FullResult;
+if (mode === "full" && !fullRes.graph?.expressions?.length) {
+  const exprs = detectPlottableExpressions(payload.text || "");
+  if (exprs.length) fullRes.graph = { expressions: exprs };
+}
+setResult(res.result as AnyResult);
+setResultMode(mode);
 
       if (user) {
         const inputType = payload.imageBase64 ? "image" : payload.pdfBase64 ? "pdf" : "text";
