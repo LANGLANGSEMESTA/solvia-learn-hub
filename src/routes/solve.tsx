@@ -158,9 +158,9 @@ const LEVELS: { key: Level; label: string }[] = [
 
 type QuickResult = { trick: string; answer: string; note?: string };
 type FullStep = { title: string; content: string; formula?: string };
-type FullResult = { 
-  concept: string; 
-  steps: FullStep[]; 
+type FullResult = {
+  concept: string;
+  steps: FullStep[];
   answer: string;
   graph?: { expressions: string[]; note?: string };
 };
@@ -188,12 +188,14 @@ function dataUrlToBase64(dataUrl: string) {
   const mediaType = /data:(.*?);base64/.exec(meta)?.[1] || "image/png";
   return { base64: data, mediaType };
 }
+
 async function ocrImage(file: File): Promise<string> {
   const worker = await createWorker("eng+ind");
   const { data: { text } } = await worker.recognize(file);
   await worker.terminate();
   return text.trim();
 }
+
 function formatResultForClipboard(r: AnyResult, mode: Mode | null): string {
   if (mode === "quick") {
     const q = r as QuickResult;
@@ -256,13 +258,13 @@ function SolvePage() {
   const callShare = useServerFn(createShareLink);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [dailyUsage, setDailyUsage] = useState<{ used: number; limit: number; isPremium: boolean } | null>(null);
-const callGetDailyUsage = useServerFn(getDailyUsage);
+  const callGetDailyUsage = useServerFn(getDailyUsage);
 
-useEffect(() => {
-  if (user) {
-    callGetDailyUsage({ data: undefined }).then(setDailyUsage).catch(console.error);
-  }
-}, [user, savedId]);
+  useEffect(() => {
+    if (user) {
+      callGetDailyUsage({ data: undefined }).then(setDailyUsage).catch(console.error);
+    }
+  }, [user, savedId]);
 
   const hasInput =
     (tab === "upload" && (!!photo || !!pdf)) ||
@@ -304,10 +306,9 @@ useEffect(() => {
     const payload: any = { mode, subject, level };
     if (tab === "type") payload.text = text.trim();
     else if (tab === "upload" && photo) {
-  const extractedText = await ocrImage(photo);
-  payload.text = extractedText;
-}
-     else if (tab === "upload" && pdf) {
+      const extractedText = await ocrImage(photo);
+      payload.text = extractedText;
+    } else if (tab === "upload" && pdf) {
       const { base64 } = await fileToBase64(pdf);
       payload.pdfBase64 = base64;
     } else if (tab === "camera" && captured) {
@@ -575,51 +576,51 @@ useEffect(() => {
 
         <div className="mt-4">
           {tab === "upload" && (
-  <div
-    onDragOver={(e) => e.preventDefault()}
-    onDrop={(e) => {
-      e.preventDefault();
-      const f = e.dataTransfer.files?.[0];
-      if (!f) return;
-      if (f.type.startsWith("image/")) {
-        setPhoto(f);
-        setPdf(null);
-      } else if (f.type === "application/pdf") {
-        setPdf(f);
-        setPhoto(null);
-      }
-    }}
-    className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-10 text-center transition hover:border-primary/50 hover:bg-muted/40"
-  >
-    <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
-    <p className="mt-4 text-sm font-medium">
-      {photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}
-    </p>
-    <p className="mt-1 text-xs text-muted-foreground">
-      Accepts JPG, PNG, PDF — up to 10MB
-    </p>
-    <input
-      type="file"
-      accept="image/jpeg,image/png,image/jpg,application/pdf"
-      className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
-      onChange={(e) => {
-        const f = e.target.files?.[0] ?? null;
-        if (!f) {
-          setPhoto(null);
-          setPdf(null);
-          return;
-        }
-        if (f.type === "application/pdf") {
-          setPdf(f);
-          setPhoto(null);
-        } else {
-          setPhoto(f);
-          setPdf(null);
-        }
-      }}
-    />
-  </div>
-)}
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const f = e.dataTransfer.files?.[0];
+                if (!f) return;
+                if (f.type.startsWith("image/")) {
+                  setPhoto(f);
+                  setPdf(null);
+                } else if (f.type === "application/pdf") {
+                  setPdf(f);
+                  setPhoto(null);
+                }
+              }}
+              className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-10 text-center transition hover:border-primary/50 hover:bg-muted/40"
+            >
+              <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
+              <p className="mt-4 text-sm font-medium">
+                {photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Accepts JPG, PNG, PDF — up to 10MB
+              </p>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,application/pdf"
+                className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (!f) {
+                    setPhoto(null);
+                    setPdf(null);
+                    return;
+                  }
+                  if (f.type === "application/pdf") {
+                    setPdf(f);
+                    setPhoto(null);
+                  } else {
+                    setPhoto(f);
+                    setPdf(null);
+                  }
+                }}
+              />
+            </div>
+          )}
 
           {tab === "type" && (
             <div className="space-y-3">
@@ -891,36 +892,37 @@ useEffect(() => {
             )}
           </div>
         )}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
-            <div className="text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Sparkles className="h-6 w-6 text-primary" />
+
+        {showUpgradeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <h2 className="font-serif text-xl font-semibold">Daily limit reached</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  You've used all {dailyUsage?.limit ?? 10} free problems today. Upgrade to Premium for unlimited access.
+                </p>
               </div>
-              <h2 className="font-serif text-xl font-semibold">Daily limit reached</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                You've used all {dailyUsage?.limit ?? 10} free problems today. Upgrade to Premium for unlimited access.
-              </p>
-            </div>
-            <div className="mt-6 flex flex-col gap-2">
-              <Link
-                to="/upgrade"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-              >
-                <Sparkles className="h-4 w-4" />
-                Upgrade to Premium
-              </Link>
-              <button
-                onClick={() => setShowUpgradeModal(false)}
-                className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium hover:bg-muted"
-              >
-                Maybe later
-              </button>
+              <div className="mt-6 flex flex-col gap-2">
+                <Link
+                  to="/upgrade"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Upgrade to Premium
+                </Link>
+                <button
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium hover:bg-muted"
+                >
+                  Maybe later
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </main>
     </div>
   );
@@ -1069,39 +1071,22 @@ function FullView({ r }: { r: FullResult }) {
             ))}
           </ol>
           <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4">
-            <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase track
-      <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
-        <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
-          <Lightbulb className="h-3.5 w-3.5" /> Concept
-        </div>
-        <p className="text-sm text-foreground"><MathRenderer text={r.concept} /></p>
-      </div>
-      <ol className="space-y-3">
-        {r.steps.map((s, i) => (
-          <li key={i} className="rounded-xl border border-border bg-card p-4">
-            <div className="flex items-start gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                {i + 1}
-              </span>
-              <div className="flex-1">
-                <h3 className="font-serif text-base font-semibold">{s.title}</h3>
-                <p className="mt-1 text-sm text-foreground/80"><MathRenderer text={s.content} /></p>
-              {s.formula && (
-  <div className="mt-2 overflow-x-auto rounded-md border border-border bg-muted px-3 py-2">
-    <BlockMath math={s.formula.replace(/^\$\$|\$\$$/g, '').replace(/^\$|\$$/g, '').trim()} />
-  </div>
-)}
-              </div>
+            <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Final answer
             </div>
-          </li>
-        ))}
-      </ol>
-      <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4">
-        <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-          <CheckCircle2 className="h-3.5 w-3.5" /> Final answer
+            <p className="font-serif text-lg font-semibold text-emerald-950"><MathRenderer text={r.answer} /></p>
+          </div>
+        </>
+      )}
+
+      {activeTab === "graph" && hasGraph && (
+        <div className="space-y-3">
+          <DesmosGraph expressions={r.graph!.expressions} />
+          {r.graph!.note && (
+            <p className="px-1 text-xs text-muted-foreground">{r.graph!.note}</p>
+          )}
         </div>
-        <p className="font-serif text-lg font-semibold text-emerald-950"><MathRenderer text={r.answer} /></p>
-      </div>
+      )}
     </div>
   );
 }
@@ -1217,6 +1202,3 @@ function SocraticView({
     </div>
   );
 }
-
-
-
