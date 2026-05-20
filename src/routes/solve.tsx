@@ -360,6 +360,7 @@ function SolvePage() {
         subject,
       };
       const res = await callSolve({ data: payload });
+      console.log("RESULT:", JSON.stringify(res.result));  // ← tambah ini
       setResult(res.result as AnyResult);
       setResultMode(mode);
 
