@@ -7,7 +7,7 @@ const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 const GEMINI_MODEL = "gemini-2.0-flash";
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1";
 
-type Mode = "quick" | "full" | "socratic";
+type Mode = "quick" | "full" | "socratic"  | "multi";
 type Level = "kid" | "middle" | "high" | "university" | "expert";
 
 const LANGUAGE_RULE =
@@ -41,6 +41,8 @@ const SYSTEM_PROMPTS: Record<Mode, string> = {
     `You are a STEM teacher. Explain step by step like in school curriculum. ${LANGUAGE_RULE} ${LATEX_RULES} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"concept": string, "steps": [{"title": string, "content": string, "formula"?: string}], "answer": string, "graph"?: {"expressions": string[], "note"?: string}}. CRITICAL: If the problem involves any plottable function (parabola, line, circle, trigonometric, exponential), you MUST include the "graph" field with Desmos-compatible expression strings. Example: for y=x^2-4 and y=x+2, return "graph": {"expressions": ["y=x^2-4", "y=x+2"]}. Use simple Desmos syntax without LaTeX backslashes.`,
   socratic:
     `You are a Socratic tutor. Do NOT give the answer. Guide the student with questions and hints only. ${LANGUAGE_RULE} ${LATEX_RULES} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"hint": string, "question": string, "encouragement": string}`,
+    multi:
+  `You are a STEM teacher. Show 2-3 different methods to solve this problem. ${LANGUAGE_RULE} ${LATEX_RULES} Return ONLY valid JSON (no markdown, no code fences) with this exact shape: {"concept": string, "methods": [{"name": string, "steps": [{"title": string, "content": string, "formula"?: string}], "answer": string}]}. Each method must have a distinct name like "Factoring", "Quadratic Formula", "Completing the Square", "Graphical", etc.`,
 };
 
 export const SOCRATIC_EVAL_PROMPT = `You are a Socratic tutor evaluating a student's answer attempt.
