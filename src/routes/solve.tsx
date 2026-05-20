@@ -988,16 +988,9 @@ function FullView({ r }: { r: FullResult }) {
               <div className="flex-1">
                 <h3 className="font-serif text-base font-semibold">{s.title}</h3>
                 <p className="mt-1 text-sm text-foreground/80"><MathRenderer text={s.content} /></p>
-                {s.formula && (
+              {s.formula && (
   <div className="mt-2 overflow-x-auto rounded-md border border-border bg-muted px-3 py-2">
-    <BlockMath math={
-      s.formula.trim()
-        .replace(/^\$\$/, '').replace(/\$\$$/, '')
-        .replace(/^\$/, '').replace(/\$$/, '')
-        .replace(/^\\\[/, '').replace(/\\\]$/, '')
-        .replace(/^\\\(/, '').replace(/\\\)$/, '')
-        .trim()
-    } />
+    <BlockMath math={s.formula.replace(/^\$\$|\$\$$/g, '').replace(/^\$|\$$/g, '').trim()} />
   </div>
 )}
               </div>

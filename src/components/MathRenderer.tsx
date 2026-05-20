@@ -17,7 +17,7 @@ export function MathRenderer({ text }: { text: string }) {
     .replace(/\\text\{cdot\}/g, '\\cdot')
     .replace(/\\\$/g, '$');
 
-  const parts = clean.split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g);
+  const parts = clean.split(/(\$\$[\s\S]+?\$\$|\$(?:[^$]|\\.)+?\$)/g);
 
   return (
     <span>
