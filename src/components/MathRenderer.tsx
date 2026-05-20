@@ -6,10 +6,15 @@ export function MathRenderer({ text }: { text: string }) {
 
   const clean = text
     .replace(/\\text\{cdot\}/g, '\\cdot')
-    .replace(/\\\$/g, '$')
-    .replace(/\\([\(\[\]\)])/g, '$1');
+    .replace(/\\\$/g, '$');
 
-  const parts = clean.split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))/g);
+  const hasLatexCommands = /\\[a-zA-Z]+/.test(clean);
+  const hasDelimiters = /\$|\\\(|\\\[/.test(clean);
+  const processed = (hasLatexCommands && !hasDelimiters)
+    ? `$${clean}$`
+    : clean;
+
+  const parts = processed.split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))/g);
 
   return (
     <span>

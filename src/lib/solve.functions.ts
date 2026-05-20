@@ -21,10 +21,16 @@ const LEVEL_DESCRIPTIONS: Record<Level, string> = {
   expert: "Explain at expert level. Be concise, use advanced notation, assume deep domain knowledge.",
 };
 const LATEX_RULES = `
-LaTeX rules: Use $...$ for inline math, $$...$$ for display math.
-For the "formula" field: pure LaTeX only, no delimiters, no text.
-Example formula field: "f'(x) = 2x\\sin(x) + x^2\\cos(x)"
-NEVER use \\text{cdot}, use \\cdot directly.
+LATEX RULES - STRICT:
+1. ALL mathematical expressions MUST be wrapped with $...$ (inline) or $$...$$ (display)
+2. NEVER write bare LaTeX like \\sin(x) without $ signs
+3. Variables like f'(x) also need $...$ wrapping
+4. For the "formula" field: wrap entire expression in $$...$$
+5. NEVER use \\text{cdot} - use \\cdot directly
+CORRECT: "Compute $u' = 2x$ and $v' = \\cos(x)$"
+CORRECT: "$2x \\cdot \\sin(x)$" not "$2x \\text{cdot} \\sin(x)$"
+CORRECT formula field: "$$f'(x) = 2x\\sin(x) + x^2\\cos(x)$$"
+WRONG: "Compute u' = 2x and v' = \\cos(x)"
 `;
 
 const SYSTEM_PROMPTS: Record<Mode, string> = {
