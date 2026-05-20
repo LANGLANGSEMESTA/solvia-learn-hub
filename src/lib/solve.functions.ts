@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const DAILY_LIMIT = 10;
-const MODEL = "deepseek-v4-pro"; // lebih mahal, performa lebih tinggi
+const MODEL = "deepseek-chat"; // FIX: changed from deepseek-v4-flash (invalid) to deepseek-chat
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 const GEMINI_MODEL = "gemini-2.0-flash";
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1";
