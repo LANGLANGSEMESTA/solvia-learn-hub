@@ -5,9 +5,10 @@ export function WelcomeModal({ userName }: { userName?: string }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const seen = localStorage.getItem("solvai_welcome_seen");
-    if (!seen) setOpen(true);
-  }, []);
+  if (typeof window === "undefined") return;
+  const seen = localStorage.getItem("solvai_welcome_seen");
+  if (!seen) setOpen(true);
+}, []);
 
   function dismiss() {
     localStorage.setItem("solvai_welcome_seen", "1");

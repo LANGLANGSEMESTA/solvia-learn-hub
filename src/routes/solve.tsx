@@ -372,6 +372,7 @@ function SolvePage() {
       };
      const res = await callSolve({ data: payload });
 const fullRes = res.result as FullResult;
+console.log("GRAPH:", JSON.stringify(fullRes.graph));
 if (mode === "full" && !fullRes.graph?.expressions?.length) {
   const exprs = detectPlottableExpressions(payload.text || "");
   if (exprs.length) fullRes.graph = { expressions: exprs };
@@ -1041,69 +1042,45 @@ function DesmosGraph({ expressions }: { expressions: string[] }) {
 }
 
 function FullView({ r }: { r: FullResult }) {
-  const [activeTab, setActiveTab] = useState<"solution" | "graph">("solution");
   const hasGraph = !!r.graph?.expressions?.length;
 
   return (
     <div className="space-y-3">
-      {hasGraph && (
-        <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
-          {(["solution", "graph"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveTab(t)}
-              className={cn(
-                "flex-1 rounded-md px-3 py-2 text-sm font-medium transition",
-                activeTab === t
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-foreground/70 hover:bg-muted"
-              )}
-            >
-              {t === "solution" ? "Solusi" : "Grafik"}
-            </button>
-          ))}
+      <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+        <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+          <Lightbulb className="h-3.5 w-3.5" /> Concept
         </div>
-      )}
-
-      {activeTab === "solution" && (
-        <>
-          <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
-            <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
-              <Lightbulb className="h-3.5 w-3.5" /> Concept
-            </div>
-            <p className="text-sm text-foreground"><MathRenderer text={r.concept} /></p>
-          </div>
-          <ol className="space-y-3">
-            {r.steps.map((s, i) => (
-              <li key={i} className="rounded-xl border border-border bg-card p-4">
-                <div className="flex items-start gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1">
-                    <h3 className="font-serif text-base font-semibold">{s.title}</h3>
-                    <p className="mt-1 text-sm text-foreground/80"><MathRenderer text={s.content} /></p>
-                    {s.formula && (
-                      <div className="mt-2 overflow-x-auto rounded-md border border-border bg-muted px-3 py-2">
-                        <BlockMath math={s.formula.replace(/^\$\$|\$\$$/g, '').replace(/^\$|\$$/g, '').trim()} />
-                      </div>
-                    )}
+        <p className="text-sm text-foreground"><MathRenderer text={r.concept} /></p>
+      </div>
+      <ol className="space-y-3">
+        {r.steps.map((s, i) => (
+          <li key={i} className="rounded-xl border border-border bg-card p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                {i + 1}
+              </span>
+              <div className="flex-1">
+                <h3 className="font-serif text-base font-semibold">{s.title}</h3>
+                <p className="mt-1 text-sm text-foreground/80"><MathRenderer text={s.content} /></p>
+                {s.formula && (
+                  <div className="mt-2 overflow-x-auto rounded-md border border-border bg-muted px-3 py-2">
+                    <BlockMath math={s.formula.replace(/^\$\$|\$\$$/g, '').replace(/^\$|\$$/g, '').trim()} />
                   </div>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4">
-            <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Final answer
+                )}
+              </div>
             </div>
-            <p className="font-serif text-lg font-semibold text-emerald-950"><MathRenderer text={r.answer} /></p>
-          </div>
-        </>
-      )}
-
-      {activeTab === "graph" && hasGraph && (
-        <div className="space-y-3">
+          </li>
+        ))}
+      </ol>
+      <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4">
+        <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+          <CheckCircle2 className="h-3.5 w-3.5" /> Final answer
+        </div>
+        <p className="font-serif text-lg font-semibold text-emerald-950"><MathRenderer text={r.answer} /></p>
+      </div>
+      {hasGraph && (
+        <div className="space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground px-1">Grafik</div>
           <DesmosGraph expressions={r.graph!.expressions} />
           {r.graph!.note && (
             <p className="px-1 text-xs text-muted-foreground">{r.graph!.note}</p>
