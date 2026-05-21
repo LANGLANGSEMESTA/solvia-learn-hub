@@ -531,7 +531,7 @@ updateWeaknessTracker(topic);
               )}
             </div>
 
-            <WeaknessRadar />
+            <WeaknessRadar key={savedId ?? "radar"} />
 
             {chatOpen && (
               <div className="rounded-xl border border-border bg-card p-4">
