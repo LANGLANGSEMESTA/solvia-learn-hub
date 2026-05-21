@@ -57,7 +57,7 @@ function UpgradePage() {
     setLoading(plan);
     try {
       const p = PLANS[plan][billing];
-      const { token } = await callCreatePayment({ data: { price: p.price, months: p.months } });
+      const { token } = await callCreatePayment({ data: { price: p.price, months: p.months, plan } });
       const snap = (window as any).snap;
       snap.pay(token, {
         onSuccess: () => { window.location.href = "/solve?upgraded=1"; },

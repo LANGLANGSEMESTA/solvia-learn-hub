@@ -7,6 +7,7 @@ const MIDTRANS_BASE_URL = "https://app.sandbox.midtrans.com/snap/v1";
 type PaymentInput = {
   price?: number;
   months?: number;
+  plan?: "basic" | "pro";
 };
 
 export const createPayment = createServerFn({ method: "POST" })
@@ -17,12 +18,16 @@ export const createPayment = createServerFn({ method: "POST" })
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    const price = data?.price || 29000;
+    const price = data?.price || 49000;
     const months = data?.months || 1;
-    const orderId = `SOLVAI-${user.id.slice(0, 8)}-${Date.now()}`;
-    const itemName = months >= 12
-      ? "Solvai Premium - 1 Year"
-      : `Solvai Premium - ${months} Month${months > 1 ? "s" : ""}`;
+    const plan = data?.plan || "basic";
+
+    // Encode plan di order_id: SOLVAI-{userPrefix}-{plan}-{timestamp}
+    const orderId = `SOLVAI-${user.id.slice(0, 8)}-${plan}-${Date.now()}`;
+
+    const planLabel = plan === "pro" ? "Pro" : "Basic";
+    const periodLabel = months >= 12 ? "1 Year" : `${months} Month${months > 1 ? "s" : ""}`;
+    const itemName = `Solvai ${planLabel} - ${periodLabel}`;
 
     const res = await fetch(`${MIDTRANS_BASE_URL}/transactions`, {
       method: "POST",
@@ -40,8 +45,8 @@ export const createPayment = createServerFn({ method: "POST" })
         },
         item_details: [
           {
-            id: "SOLVAI-PREMIUM",
-            price: price,
+            id: `SOLVAI-${plan.toUpperCase()}`,
+            price,
             quantity: 1,
             name: itemName,
           },
@@ -54,6 +59,6 @@ export const createPayment = createServerFn({ method: "POST" })
       throw new Error(`Midtrans error: ${err}`);
     }
 
-    const data2 = await res.json();
-    return { token: data2.token, orderId };
+    const json = await res.json();
+    return { token: json.token, orderId };
   });

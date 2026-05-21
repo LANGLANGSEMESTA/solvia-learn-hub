@@ -80,19 +80,58 @@ export const APIRoute = createAPIFileRoute("/api/midtrans-webhook")({
       transaction_status === "settlement";
 
     if (isSuccess) {
-      const months = gross_amount >= 200000 ? 12 : 1;
-      const premiumUntil = new Date();
-      premiumUntil.setMonth(premiumUntil.getMonth() + months);
+  // Decode plan dari order_id: SOLVAI-{userPrefix}-{plan}-{timestamp}
+  const plan = parts[2] === "pro" ? "pro" : "basic"
+  const months = plan === "pro"
+    ? (gross_amount >= 600000 ? 12 : 1)
+    : (gross_amount >= 300000 ? 12 : 1)
 
-      await supabaseAdmin
-        .from("subscriptions")
-        .upsert({
-          user_id: user.id,
-          is_premium: true,
-          premium_until: premiumUntil.toISOString(),
-          midtrans_order_id: order_id,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "user_id" });
+  const premiumUntil = new Date();
+  premiumUntil.setMonth(premiumUntil.getMonth() + months);
+
+  await supabaseAdmin
+    .from("subscriptions")
+    .upsert({
+      user_id: user.id,
+      is_premium: true,
+      plan,
+      premium_until: premiumUntil.toISOString(),
+      midtrans_order_id: order_id,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
+  const expiredDate = premiumUntil.toLocaleDateString("id-ID", {
+    day: "numeric", month: "long", year: "numeric"
+  });
+
+  const planLabel = plan === "pro" ? "Pro" : "Basic";
+
+  await sendBrevoEmail({
+    to: user.email!,
+    subject: `✦ Solvai ${planLabel} aktif!`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="font-size:24px;font-weight:700;margin-bottom:8px;">Selamat! Solvai ${planLabel} aktif ✦</h2>
+        <p style="color:#555;margin-bottom:24px;">
+          Terima kasih sudah upgrade ke Solvai ${planLabel}.
+        </p>
+        <div style="background:#f5f5f5;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+          <p style="margin:0 0 4px;font-size:13px;color:#888;">Plan</p>
+          <p style="margin:0;font-size:18px;font-weight:600;">Solvai ${planLabel}</p>
+          <p style="margin:8px 0 4px;font-size:13px;color:#888;">Aktif hingga</p>
+          <p style="margin:0;font-size:18px;font-weight:600;">${expiredDate}</p>
+        </div>
+        <a href="https://solvai.app/solve"
+           style="display:inline-block;background:#4f46e5;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">
+          Mulai solve →
+        </a>
+        <p style="margin-top:32px;font-size:12px;color:#aaa;">
+          Solvai · Jika ada pertanyaan, balas email ini.
+        </p>
+      </div>
+    `,
+  });
+}
 
       // Kirim email konfirmasi premium
       const expiredDate = premiumUntil.toLocaleDateString("id-ID", {
