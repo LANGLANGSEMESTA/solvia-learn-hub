@@ -393,3 +393,50 @@ export const evaluateSocraticAnswer = createServerFn({ method: "POST" })
       isPremium: !!isPremium,
     };
   });
+  // ─── Weakness Tracker ───────────────────────────────────────────
+
+export function detectTopic(problem: string): string {
+  const p = problem.toLowerCase()
+  
+  if (/sin|cos|tan|sudut|radian|trigon/.test(p)) return "trigonometri"
+  if (/integral|turunan|limit|diferensial|kalkulus/.test(p)) return "kalkulus"
+  if (/statistik|mean|median|modus|standar deviasi|probabilitas|peluang/.test(p)) return "statistika"
+  if (/luas|volume|lingkaran|segitiga|geometri|pythagoras/.test(p)) return "geometri"
+  if (/x\^2|kuadrat|parabola|faktor|akar|diskriminan/.test(p)) return "aljabar"
+  if (/persen|rasio|pecahan|desimal|perbandingan/.test(p)) return "aritmatika"
+  
+  return "aljabar"
+}
+
+export function updateWeaknessTracker(topic: string) {
+  if (typeof window === "undefined") return
+  
+  const raw = localStorage.getItem("weakness_tracker")
+  const tracker = raw ? JSON.parse(raw) : {
+    trigonometri: { attempts: 0 },
+    kalkulus:     { attempts: 0 },
+    statistika:   { attempts: 0 },
+    geometri:     { attempts: 0 },
+    aljabar:      { attempts: 0 },
+    aritmatika:   { attempts: 0 },
+  }
+  
+  if (!tracker[topic]) tracker[topic] = { attempts: 0 }
+  tracker[topic].attempts += 1
+  
+  localStorage.setItem("weakness_tracker", JSON.stringify(tracker))
+}
+
+export function getWeaknessData() {
+  if (typeof window === "undefined") return null
+  
+  const raw = localStorage.getItem("weakness_tracker")
+  if (!raw) return null
+  
+  const tracker = JSON.parse(raw)
+  
+  return Object.entries(tracker).map(([topic, data]: [string, any]) => ({
+    topic,
+    attempts: data.attempts,
+  }))
+}

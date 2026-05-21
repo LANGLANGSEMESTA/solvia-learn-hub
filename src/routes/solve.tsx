@@ -29,12 +29,13 @@ import {
   Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { solveProblem, chatFollowUp, evaluateSocraticAnswer, getDailyUsage } from "@/lib/solve.functions";
+import { solveProblem, chatFollowUp, evaluateSocraticAnswer, getDailyUsage, detectTopic, updateWeaknessTracker } from "@/lib/solve.functions";
 import { createShareLink } from "@/lib/share.functions";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { StreakBadge } from "@/components/StreakBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { WeaknessRadar } from "@/components/WeaknessRadar";
 
 const EXAMPLES: Record<Subject, string[]> = {
   Math: [
@@ -307,6 +308,8 @@ function SolvePage() {
       }
       setResult(res.result as AnyResult);
       setResultMode(mode);
+      const topic = detectTopic(payload.text || lastContextRef.current?.text || "");
+updateWeaknessTracker(topic);
       if (user) {
         const inputType = payload.imageBase64 ? "image" : payload.pdfBase64 ? "pdf" : "text";
         const { data, error } = await supabase.from("problems").insert({ user_id: user.id, subject, mode, input_type: inputType, input_text: payload.text || null, result: res.result as any }).select("id").single();
@@ -527,6 +530,8 @@ function SolvePage() {
                 </button>
               )}
             </div>
+
+            <WeaknessRadar />
 
             {chatOpen && (
               <div className="rounded-xl border border-border bg-card p-4">
