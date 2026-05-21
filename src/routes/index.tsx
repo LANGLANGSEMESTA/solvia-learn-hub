@@ -369,28 +369,27 @@ function PriceCard({
   price,
   period,
   features,
+  notIncluded = [],
   featured,
   cta,
   savings,
+  perMonth,
 }: {
   name: string;
   price: string;
   period: string;
   features: string[];
+  notIncluded?: string[];
   featured?: boolean;
   cta: string;
   savings?: string;
+  perMonth?: string;
 }) {
   return (
-    <div
-      className={`relative flex flex-col rounded-xl border bg-card p-6 sm:p-8 ${
-        featured ? "border-primary shadow-[0_10px_40px_-15px_rgba(83,74,183,0.4)]" : "border-border"
-      }`}
-    >
+    <div className={`relative flex flex-col rounded-xl border bg-card p-6 sm:p-8 ${featured ? "border-primary shadow-[0_10px_40px_-15px_rgba(83,74,183,0.4)]" : "border-border"}`}>
       {featured && (
         <span className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-          <Star className="h-3 w-3 fill-current" />
-          Most popular
+          <Star className="h-3 w-3 fill-current" />Most popular
         </span>
       )}
       <div className="font-serif text-lg font-semibold">{name}</div>
@@ -398,29 +397,23 @@ function PriceCard({
         <span className="font-serif text-4xl font-semibold">{price}</span>
         <span className="text-sm text-muted-foreground">/{period}</span>
       </div>
-      {savings && (
-        <p className="mt-1 text-xs font-medium text-emerald-600">{savings}</p>
-      )}
-      <ul className="mt-6 space-y-3 text-sm">
+      {perMonth && <p className="mt-0.5 text-xs text-muted-foreground">{perMonth}</p>}
+      {savings && <p className="mt-1 text-xs font-medium text-emerald-600">{savings}</p>}
+      <ul className="mt-6 space-y-3 text-sm flex-1">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2">
-            <Check
-              className={`mt-0.5 h-4 w-4 shrink-0 ${
-                featured ? "text-primary" : "text-success"
-              }`}
-            />
+            <Check className={`mt-0.5 h-4 w-4 shrink-0 ${featured ? "text-primary" : "text-success"}`} />
             <span className="text-foreground/85">{f}</span>
           </li>
         ))}
+        {notIncluded.map((f) => (
+          <li key={f} className="flex items-start gap-2 text-muted-foreground/50">
+            <span className="mt-0.5 h-4 w-4 shrink-0 text-center text-xs">—</span>
+            <span>{f}</span>
+          </li>
+        ))}
       </ul>
-      <Link
-        to="/upgrade"
-        className={`mt-8 w-full rounded-md px-4 py-2.5 text-center text-sm font-medium transition ${
-          featured
-            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-            : "border border-border bg-background hover:bg-muted"
-        }`}
-      >
+      <Link to="/upgrade" className={`mt-8 w-full rounded-md px-4 py-2.5 text-center text-sm font-medium transition ${featured ? "bg-primary text-primary-foreground hover:bg-primary/90" : "border border-border bg-background hover:bg-muted"}`}>
         {cta}
       </Link>
     </div>
@@ -428,77 +421,80 @@ function PriceCard({
 }
 
 function Pricing() {
-  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+  const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
 
   return (
     <section className="px-4 py-20 sm:px-6">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
             Simple, <span className="text-primary italic">student-friendly</span> pricing
           </h2>
-          <p className="mt-3 text-muted-foreground">
-            Start free. Upgrade when you want unlimited everything.
-          </p>
+          <p className="mt-3 text-muted-foreground">Start free. Upgrade when you want more.</p>
         </div>
 
-        {/* Billing toggle */}
         <div className="mt-8 flex justify-center">
           <div className="flex rounded-xl border border-border bg-card p-1">
-            <button
-              onClick={() => setBilling("monthly")}
-              className={`rounded-lg px-5 py-2 text-sm font-medium transition ${
-                billing === "monthly"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-foreground/70 hover:bg-muted"
-              }`}
-            >
+            <button onClick={() => setBilling("monthly")} className={`rounded-lg px-5 py-2 text-sm font-medium transition ${billing === "monthly" ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/70 hover:bg-muted"}`}>
               Monthly
             </button>
-            <button
-              onClick={() => setBilling("yearly")}
-              className={`relative rounded-lg px-5 py-2 text-sm font-medium transition ${
-                billing === "yearly"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-foreground/70 hover:bg-muted"
-              }`}
-            >
+            <button onClick={() => setBilling("yearly")} className={`relative rounded-lg px-5 py-2 text-sm font-medium transition ${billing === "yearly" ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/70 hover:bg-muted"}`}>
               Yearly
-              <span className="absolute -top-2.5 -right-2 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                -31%
-              </span>
+              <span className="absolute -top-2.5 -right-2 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">-33%</span>
             </button>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2">
+        <div className="mt-8 grid gap-5 sm:grid-cols-3">
           <PriceCard
             name="Free"
             price="Rp0"
             period="forever"
             cta="Get started"
             features={[
-              "10 problems per day",
-              "All 3 learning modes",
+              "Quick mode — 10x/day",
+              "1 trial/day per mode",
+              "Math only",
+              "Weakness Radar",
+            ]}
+            notIncluded={[
+              "Physics & Chemistry",
+              "Unlimited modes",
               "Follow-up chat",
-              "Similar problem generator",
-              "Daily streak tracking",
             ]}
           />
           <PriceCard
-            name="Premium"
-            price={billing === "monthly" ? "Rp29.000" : "Rp239.000"}
-            period={billing === "monthly" ? "month" : "year"}
-            featured
-            cta="Go premium"
-            savings={billing === "yearly" ? "Save Rp109.000" : undefined}
+            name="Basic"
+            price={billing === "monthly" ? "Rp49.000" : "Rp399.000"}
+            period={billing === "monthly" ? "mo" : "yr"}
+            perMonth={billing === "yearly" ? "Rp33.000/mo" : undefined}
+            savings={billing === "yearly" ? "Save Rp189.000" : undefined}
+            cta="Get Basic"
             features={[
-              "Unlimited problems",
-              "All 3 learning modes",
-              "Unlimited follow-ups",
-              "Voice explanations",
+              "Unlimited Quick & Full",
+              "Math, Physics & Chemistry",
+              "Follow-up chat",
               "Bookmarks & history",
-              "Priority AI responses",
+              "Weakness Radar",
+            ]}
+            notIncluded={[
+              "Unlimited Socratic & Multi",
+              "Explanation level (Kid → Expert)",
+            ]}
+          />
+          <PriceCard
+            name="Pro"
+            price={billing === "monthly" ? "Rp89.000" : "Rp699.000"}
+            period={billing === "monthly" ? "mo" : "yr"}
+            perMonth={billing === "yearly" ? "Rp58.000/mo" : undefined}
+            featured
+            cta="Get Pro"
+            savings={billing === "yearly" ? "Save Rp369.000" : undefined}
+            features={[
+              "Everything in Basic",
+              "Unlimited Socratic & Multi-method",
+              "Explanation level: Kid → Expert",
+              "Priority access to new features",
             ]}
           />
         </div>
