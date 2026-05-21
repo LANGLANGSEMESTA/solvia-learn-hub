@@ -7,26 +7,9 @@ import { BlockMath } from 'react-katex';
 import { MathRenderer } from "@/components/MathRenderer";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import {
-  Sigma,
-  ArrowRight,
-  Camera,
-  Keyboard,
-  Zap,
-  BookOpen,
-  HelpCircle,
-  Sparkles,
-  Upload,
-  Volume2,
-  RefreshCw,
-  MessageCircle,
-  Send,
-  Lightbulb,
-  CheckCircle2,
-  Bookmark,
-  Loader2,
-  Copy,
-  Share2,
-  Printer,
+  Sigma, ArrowRight, Camera, Keyboard, Zap, BookOpen, HelpCircle,
+  Sparkles, Upload, Volume2, RefreshCw, MessageCircle, Send, Lightbulb,
+  CheckCircle2, Bookmark, Loader2, Copy, Share2, Printer, Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp, evaluateSocraticAnswer, getDailyUsage, detectTopic, updateWeaknessTracker } from "@/lib/solve.functions";
@@ -59,11 +42,7 @@ export const Route = createFileRoute("/solve")({
   head: () => ({
     meta: [
       { title: "Solve — Solvai" },
-      {
-        name: "description",
-        content:
-          "Solve any STEM problem with Solvai. Upload a photo, type your question, scan a PDF, or use your camera.",
-      },
+      { name: "description", content: "Solve any STEM problem with Solvai. Upload a photo, type your question, scan a PDF, or use your camera." },
     ],
   }),
   component: SolvePage,
@@ -88,9 +67,7 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
           <Link to="/" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Home</Link>
           <Link to="/solve" className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted">Solve</Link>
           <Link to="/history" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">History</Link>
-          {user && (
-            <Link to="/profile" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Profile</Link>
-          )}
+          {user && <Link to="/profile" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Profile</Link>}
           {user && (user.email === "irsanwu@gmail.com" || user.email === "irsanwuu@gmail.com") && (
             <Link to="/admin" className="rounded-md px-3 py-2 text-sm font-medium text-primary transition hover:bg-muted">Admin</Link>
           )}
@@ -121,6 +98,14 @@ type TabKey = "upload" | "type" | "camera";
 type Subject = "Math" | "Physics" | "Chemistry";
 type Mode = "quick" | "full" | "socratic" | "multi";
 type Level = "kid" | "middle" | "high" | "university" | "expert";
+type Plan = "free" | "basic" | "pro";
+
+type DailyUsage = {
+  plan: Plan;
+  counts: Record<string, number>;
+  limits: Record<string, number>;
+  allowedSubjects: string[];
+};
 
 const TABS: { key: TabKey; label: string; icon: typeof Camera }[] = [
   { key: "upload", label: "Upload", icon: Upload },
@@ -173,39 +158,71 @@ async function ocrImage(file: File): Promise<string> {
 }
 
 function formatResultForClipboard(r: AnyResult, mode: Mode | null): string {
-  if (mode === "quick") {
-    const q = r as QuickResult;
-    return `Trick: ${q.trick}\n\nAnswer: ${q.answer}${q.note ? `\n\nNote: ${q.note}` : ""}`;
-  }
-  if (mode === "full") {
-    const f = r as FullResult;
-    const steps = f.steps.map((s, i) => `${i + 1}. ${s.title}\n${s.content}${s.formula ? `\n   ${s.formula}` : ""}`).join("\n\n");
-    return `Concept: ${f.concept}\n\n${steps}\n\nAnswer: ${f.answer}`;
-  }
-  if (mode === "socratic") {
-    const s = r as SocraticResult;
-    return `Hint: ${s.hint}\n\nQuestion: ${s.question}\n\n${s.encouragement}`;
-  }
-  if (mode === "multi") {
-    const m = r as MultiResult;
-    return m.methods.map(method =>
-      `[${method.name}]\n` + method.steps.map((s, i) => `${i + 1}. ${s.title}\n${s.content}`).join("\n\n") + `\n\nAnswer: ${method.answer}`
-    ).join("\n\n---\n\n");
-  }
+  if (mode === "quick") { const q = r as QuickResult; return `Trick: ${q.trick}\n\nAnswer: ${q.answer}${q.note ? `\n\nNote: ${q.note}` : ""}`; }
+  if (mode === "full") { const f = r as FullResult; const steps = f.steps.map((s, i) => `${i + 1}. ${s.title}\n${s.content}${s.formula ? `\n   ${s.formula}` : ""}`).join("\n\n"); return `Concept: ${f.concept}\n\n${steps}\n\nAnswer: ${f.answer}`; }
+  if (mode === "socratic") { const s = r as SocraticResult; return `Hint: ${s.hint}\n\nQuestion: ${s.question}\n\n${s.encouragement}`; }
+  if (mode === "multi") { const m = r as MultiResult; return m.methods.map(method => `[${method.name}]\n` + method.steps.map((s, i) => `${i + 1}. ${s.title}\n${s.content}`).join("\n\n") + `\n\nAnswer: ${method.answer}`).join("\n\n---\n\n"); }
   return JSON.stringify(r, null, 2);
 }
 
 function detectPlottableExpressions(problemText: string): string[] {
   const found: string[] = [];
-  const yEqPattern = /y\s*=\s*[^\n,;]+/gi;
-  const matches = problemText.match(yEqPattern);
-  if (matches) {
-    matches.forEach(m => {
-      const clean = m.trim().replace(/\s+/g, " ");
-      if (!found.includes(clean)) found.push(clean);
-    });
-  }
+  const matches = problemText.match(/y\s*=\s*[^\n,;]+/gi);
+  if (matches) matches.forEach(m => { const clean = m.trim().replace(/\s+/g, " "); if (!found.includes(clean)) found.push(clean); });
   return found.slice(0, 4);
+}
+
+// ─── Upgrade Modal ───────────────────────────────────────────────
+function UpgradeModal({ reason, onClose }: { reason: string; onClose: () => void }) {
+  const messages: Record<string, { title: string; desc: string; cta: string }> = {
+    LIMIT_QUICK: {
+      title: "Quick limit reached",
+      desc: "You've used all 10 free Quick solves today. Upgrade to Basic for unlimited access.",
+      cta: "Upgrade to Basic — Rp49.000/mo",
+    },
+    LIMIT_TRIAL: {
+      title: "Trial used for today",
+      desc: "You've used your free trial for this mode today. Upgrade to unlock unlimited access.",
+      cta: "See upgrade options",
+    },
+    LIMIT_SUBJECT: {
+      title: "Physics & Chemistry are premium",
+      desc: "Free plan includes Math only. Upgrade to Basic or Pro for all 3 subjects.",
+      cta: "Upgrade to Basic — Rp49.000/mo",
+    },
+    LIMIT_LEVEL: {
+      title: "Level selection is Pro only",
+      desc: "Choosing explanation level (Kid → Expert) requires a Pro plan.",
+      cta: "Upgrade to Pro — Rp89.000/mo",
+    },
+    default: {
+      title: "Upgrade required",
+      desc: "This feature requires a paid plan.",
+      cta: "See upgrade options",
+    },
+  }
+
+  const m = messages[reason] ?? messages.default
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <Sparkles className="h-6 w-6 text-primary" />
+          </div>
+          <h2 className="font-serif text-xl font-semibold">{m.title}</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{m.desc}</p>
+        </div>
+        <div className="mt-6 flex flex-col gap-2">
+          <Link to="/upgrade" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+            <Sparkles className="h-4 w-4" />{m.cta}
+          </Link>
+          <button onClick={onClose} className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium hover:bg-muted">Maybe later</button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function SolvePage() {
@@ -223,7 +240,7 @@ function SolvePage() {
   const [text, setText] = useState("");
   const [captured, setCaptured] = useState<string | null>(null);
   const [subject, setSubject] = useState<Subject>("Math");
-  const [mode, setMode] = useState<Mode>("full");
+  const [mode, setMode] = useState<Mode>("quick");
   const [level, setLevel] = useState<Level>("high");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -240,15 +257,50 @@ function SolvePage() {
   const callSolve = useServerFn(solveProblem);
   const callChat = useServerFn(chatFollowUp);
   const callShare = useServerFn(createShareLink);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [dailyUsage, setDailyUsage] = useState<{ used: number; limit: number; isPremium: boolean } | null>(null);
+  const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const [dailyUsage, setDailyUsage] = useState<DailyUsage | null>(null);
   const callGetDailyUsage = useServerFn(getDailyUsage);
 
   useEffect(() => {
-    if (user) {
-      callGetDailyUsage({ data: undefined }).then(setDailyUsage).catch(console.error);
-    }
+    if (user) callGetDailyUsage({ data: undefined }).then(setDailyUsage).catch(console.error);
   }, [user, savedId]);
+
+  const plan = dailyUsage?.plan ?? "free"
+  const counts = dailyUsage?.counts ?? {}
+  const limits = dailyUsage?.limits ?? { quick: 10, full: 1, socratic: 1, multi: 1 }
+  const allowedSubjects = dailyUsage?.allowedSubjects ?? ["Math"]
+
+  const isModeTrialUsed = (m: Mode) => (counts[m] ?? 0) >= (limits[m] ?? 0)
+  const isModeLocked = (m: Mode) => {
+    if (plan === "pro") return false
+    if (m === "quick") return isModeTrialUsed("quick")
+    if (m === "full") return plan === "free" && isModeTrialUsed("full")
+    if (m === "socratic") return plan !== "pro" && isModeTrialUsed("socratic")
+    if (m === "multi") return plan !== "pro" && isModeTrialUsed("multi")
+    return false
+  }
+
+  const getModeDesc = (m: Mode) => {
+    if (m === "quick") {
+      if (plan === "free") return `${counts.quick ?? 0}/${limits.quick} today`
+      return "Fast answer + shortcut"
+    }
+    if (m === "full") {
+      if (plan === "free") return isModeTrialUsed("full") ? "Trial used · Basic+" : "1 free trial/day"
+      return "Step by step"
+    }
+    if (m === "socratic") {
+      if (plan === "free") return isModeTrialUsed("socratic") ? "Trial used · Pro" : "1 free trial/day"
+      if (plan === "basic") return isModeTrialUsed("socratic") ? "Trial used · Pro" : "1 free trial/day"
+      return "Guided hints"
+    }
+    if (m === "multi") {
+      if (plan === "free") return isModeTrialUsed("multi") ? "Trial used · Pro" : "1 free trial/day"
+      if (plan === "basic") return isModeTrialUsed("multi") ? "Trial used · Pro" : "1 free trial/day"
+      return "3 ways to solve"
+    }
+    return ""
+  }
 
   const hasInput =
     (tab === "upload" && (!!photo || !!pdf)) ||
@@ -290,12 +342,6 @@ function SolvePage() {
 
   async function handleSolve() {
     if (!hasInput || loading) return;
-    if (level === "kid" || level === "middle") {
-      const complexIndicators = [/integral|derivative|calculus|diferensial/i,/matrix|determinant|eigenvalue/i,/prove|buktikan|proof|teorema/i,/olimpiade|olympiad|competition|kompetisi/i,/[∫∑∏∂∇∞]/,/segitiga.*luas.*titik|rectangle.*area.*point/i,/limit|continuity|differentiable/i];
-      if (complexIndicators.some(p => p.test(text.trim()))) {
-        toast.warning(level === "kid" ? "This problem looks advanced. 'A Kid' level works best for basic problems." : "This problem may be too complex for Middle School level.", { duration: 5000 });
-      }
-    }
     setLoading(true); setResult(null); setChatOpen(false); setChatHistory([]); setSavedId(null); setBookmarked(false);
     try {
       const payload = await buildPayload();
@@ -309,16 +355,23 @@ function SolvePage() {
       setResult(res.result as AnyResult);
       setResultMode(mode);
       const topic = detectTopic(payload.text || lastContextRef.current?.text || "");
-updateWeaknessTracker(topic);
+      updateWeaknessTracker(topic);
       if (user) {
         const inputType = payload.imageBase64 ? "image" : payload.pdfBase64 ? "pdf" : "text";
         const { data, error } = await supabase.from("problems").insert({ user_id: user.id, subject, mode, input_type: inputType, input_text: payload.text || null, result: res.result as any }).select("id").single();
         if (!error && data) setSavedId(data.id);
       }
+      // Refresh usage
+      callGetDailyUsage({ data: undefined }).then(setDailyUsage).catch(console.error);
     } catch (e: any) {
       console.error(e);
-      if (e?.message?.includes("Daily limit reached")) { setShowUpgradeModal(true); }
-      else { toast.error(e?.message || "Something went wrong. Please try again."); }
+      const msg: string = e?.message ?? ""
+      if (msg.startsWith("LIMIT_")) {
+        const reason = msg.split(":")[0]
+        setUpgradeReason(reason)
+      } else {
+        toast.error(msg || "Something went wrong. Please try again.");
+      }
     } finally { setLoading(false); }
   }
 
@@ -388,15 +441,15 @@ updateWeaknessTracker(topic);
         <div className="text-center">
           <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">Solve a problem</h1>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">Upload, type, or snap your STEM question.</p>
-          {dailyUsage && !dailyUsage.isPremium && (
+          {dailyUsage && plan === "free" && (
             <div className="mt-3 flex items-center justify-center gap-2">
               <div className="flex gap-1">
-                {Array.from({ length: dailyUsage.limit }).map((_, i) => (
-                  <div key={i} className={cn("h-1.5 w-4 rounded-full transition", i < dailyUsage.used ? "bg-primary" : "bg-border")} />
+                {Array.from({ length: limits.quick }).map((_, i) => (
+                  <div key={i} className={cn("h-1.5 w-4 rounded-full transition", i < (counts.quick ?? 0) ? "bg-primary" : "bg-border")} />
                 ))}
               </div>
-              <span className="text-xs text-muted-foreground">{dailyUsage.used}/{dailyUsage.limit} today</span>
-              {dailyUsage.used >= dailyUsage.limit && <Link to="/upgrade" className="text-xs font-medium text-primary hover:underline">Upgrade →</Link>}
+              <span className="text-xs text-muted-foreground">{counts.quick ?? 0}/{limits.quick} Quick today</span>
+              {(counts.quick ?? 0) >= limits.quick && <Link to="/upgrade" className="text-xs font-medium text-primary hover:underline">Upgrade →</Link>}
             </div>
           )}
         </div>
@@ -460,35 +513,59 @@ updateWeaknessTracker(topic);
           )}
         </div>
 
+        {/* Subject */}
         <div className="mt-10">
           <div className="mb-3 flex items-center justify-between">
             <label className="text-sm font-medium">Subject</label>
-            <span className="text-xs text-muted-foreground">Auto-detected</span>
+            {plan === "free" && <span className="text-xs text-muted-foreground">Math only on free plan</span>}
           </div>
           <div className="flex flex-wrap gap-2">
-            {(["Math", "Physics", "Chemistry"] as Subject[]).map((s) => (
-              <button key={s} onClick={() => setSubject(s)} className={cn("rounded-full border px-4 py-1.5 text-sm font-medium transition", subject === s ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-foreground/70 hover:bg-muted")}>{s}</button>
-            ))}
+            {(["Math", "Physics", "Chemistry"] as Subject[]).map((s) => {
+              const locked = !allowedSubjects.includes(s)
+              return (
+                <button key={s} onClick={() => { if (locked) { setUpgradeReason("LIMIT_SUBJECT"); return; } setSubject(s); }}
+                  className={cn("inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition",
+                    subject === s && !locked ? "border-primary bg-primary/10 text-primary" :
+                    locked ? "border-border bg-card text-foreground/40 cursor-not-allowed" :
+                    "border-border bg-card text-foreground/70 hover:bg-muted")}>
+                  {s}{locked && <Lock className="h-3 w-3" />}
+                </button>
+              )
+            })}
           </div>
         </div>
 
+        {/* Mode */}
         <div className="mt-8">
           <label className="mb-3 block text-sm font-medium">Mode</label>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
-            <ModeCard active={mode === "quick"} onClick={() => setMode("quick")} icon={<Zap className="h-5 w-5" />} title="Quick trick" desc="Fast answer + shortcut" />
-            <ModeCard active={mode === "full"} onClick={() => setMode("full")} icon={<BookOpen className="h-5 w-5" />} title="Full explanation" desc="Step by step" />
-            <ModeCard active={mode === "socratic"} onClick={() => setMode("socratic")} icon={<HelpCircle className="h-5 w-5" />} title="Socratic" desc="Guided hints" />
-            <ModeCard active={mode === "multi"} onClick={() => setMode("multi")} icon={<Sigma className="h-5 w-5" />} title="Multi-method" desc="3 ways to solve" />
+            <ModeCard active={mode === "quick"} locked={isModeLocked("quick")} onClick={() => { if (isModeLocked("quick")) { setUpgradeReason("LIMIT_QUICK"); return; } setMode("quick"); }} icon={<Zap className="h-5 w-5" />} title="Quick trick" desc={getModeDesc("quick")} />
+            <ModeCard active={mode === "full"} locked={isModeLocked("full")} onClick={() => { if (isModeLocked("full")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("full"); }} icon={<BookOpen className="h-5 w-5" />} title="Full explanation" desc={getModeDesc("full")} />
+            <ModeCard active={mode === "socratic"} locked={isModeLocked("socratic")} onClick={() => { if (isModeLocked("socratic")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("socratic"); }} icon={<HelpCircle className="h-5 w-5" />} title="Socratic" desc={getModeDesc("socratic")} />
+            <ModeCard active={mode === "multi"} locked={isModeLocked("multi")} onClick={() => { if (isModeLocked("multi")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("multi"); }} icon={<Sigma className="h-5 w-5" />} title="Multi-method" desc={getModeDesc("multi")} />
           </div>
         </div>
 
+        {/* Level */}
         {mode !== "socratic" && (
           <div className="mt-6">
-            <label className="mb-3 block text-sm font-medium">Explain like I'm...</label>
+            <div className="mb-3 flex items-center justify-between">
+              <label className="text-sm font-medium">Explain like I'm...</label>
+              {plan !== "pro" && <span className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />Pro only</span>}
+            </div>
             <div className="flex flex-wrap gap-2">
-              {LEVELS.map((l) => (
-                <button key={l.key} onClick={() => setLevel(l.key)} className={cn("rounded-full border px-4 py-1.5 text-sm font-medium transition", level === l.key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-foreground/70 hover:bg-muted")}>{l.label}</button>
-              ))}
+              {LEVELS.map((l) => {
+                const locked = plan !== "pro" && l.key !== "high"
+                return (
+                  <button key={l.key} onClick={() => { if (locked) { setUpgradeReason("LIMIT_LEVEL"); return; } setLevel(l.key); }}
+                    className={cn("inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition",
+                      level === l.key && !locked ? "border-primary bg-primary/10 text-primary" :
+                      locked ? "border-border bg-card text-foreground/40 cursor-not-allowed" :
+                      "border-border bg-card text-foreground/70 hover:bg-muted")}>
+                    {l.label}{locked && <Lock className="h-3 w-3" />}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
@@ -523,7 +600,9 @@ updateWeaknessTracker(topic);
                 <button onClick={async () => { try { const { token } = await callShare({ data: { problemId: savedId } }); const url = `${window.location.origin}/s/${token}`; await navigator.clipboard.writeText(url); toast.success("Share link copied to clipboard"); } catch (e: any) { toast.error(e?.message || "Could not create share link"); } }} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"><Share2 className="h-4 w-4" />Share link</button>
               )}
               <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"><Printer className="h-4 w-4" />Save as PDF</button>
-              <button onClick={() => setChatOpen((v) => !v)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"><MessageCircle className="h-4 w-4" />Ask a follow-up</button>
+              {plan !== "free" && (
+                <button onClick={() => setChatOpen((v) => !v)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"><MessageCircle className="h-4 w-4" />Ask a follow-up</button>
+              )}
               {user && savedId && (
                 <button onClick={toggleBookmark} className={cn("inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition", bookmarked ? "border-primary bg-primary/10 text-primary hover:bg-primary/20" : "border-border bg-card hover:bg-muted")}>
                   <Bookmark className={cn("h-4 w-4", bookmarked && "fill-current")} />{bookmarked ? "Bookmarked" : "Bookmark"}
@@ -533,7 +612,7 @@ updateWeaknessTracker(topic);
 
             <WeaknessRadar key={savedId ?? "radar"} />
 
-            {chatOpen && (
+            {chatOpen && plan !== "free" && (
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="space-y-3 max-h-80 overflow-y-auto">
                   {chatHistory.length === 0 && <p className="text-sm text-muted-foreground">Ask anything about this problem — I have the full context.</p>}
@@ -559,30 +638,20 @@ updateWeaknessTracker(topic);
           </div>
         )}
 
-        {showUpgradeModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10"><Sparkles className="h-6 w-6 text-primary" /></div>
-                <h2 className="font-serif text-xl font-semibold">Daily limit reached</h2>
-                <p className="mt-2 text-sm text-muted-foreground">You've used all {dailyUsage?.limit ?? 10} free problems today. Upgrade to Premium for unlimited access.</p>
-              </div>
-              <div className="mt-6 flex flex-col gap-2">
-                <Link to="/upgrade" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><Sparkles className="h-4 w-4" />Upgrade to Premium</Link>
-                <button onClick={() => setShowUpgradeModal(false)} className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium hover:bg-muted">Maybe later</button>
-              </div>
-            </div>
-          </div>
-        )}
+        {upgradeReason && <UpgradeModal reason={upgradeReason} onClose={() => setUpgradeReason(null)} />}
       </main>
     </div>
   );
 }
 
-function ModeCard({ active, onClick, icon, title, desc }: { active: boolean; onClick: () => void; icon: React.ReactNode; title: string; desc: string }) {
+function ModeCard({ active, locked, onClick, icon, title, desc }: { active: boolean; locked: boolean; onClick: () => void; icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <button onClick={onClick} className={cn("flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left transition", active ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/40 hover:bg-muted/40")}>
-      <span className={cn("text-primary", active ? "text-primary" : "text-foreground/70")}>{icon}</span>
+    <button onClick={onClick} className={cn("relative flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left transition",
+      active && !locked ? "border-primary ring-2 ring-primary/20" :
+      locked ? "border-border opacity-60 cursor-not-allowed" :
+      "border-border hover:border-primary/40 hover:bg-muted/40")}>
+      {locked && <Lock className="absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground" />}
+      <span className={cn(active && !locked ? "text-primary" : "text-foreground/70")}>{icon}</span>
       <span className="font-serif text-base font-semibold">{title}</span>
       <span className="text-xs text-muted-foreground">{desc}</span>
     </button>
