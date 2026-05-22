@@ -570,7 +570,7 @@ function FAQ() {
   const items = [
     {
       q: "Is Solvai free to use?",
-      a: "Yes. The free plan lets you solve up to 10 problems per day with all three learning modes. Premium unlocks unlimited problems and priority responses.",
+      a: "Yes. The free plan gives you 10 Quick solves per day, plus 1 free trial per day for Full, Socratic, and Multi-method modes — so you can experience everything before upgrading. Basic (Rp49.000/mo) unlocks unlimited Quick & Full plus Physics and Chemistry. Pro (Rp89.000/mo) adds unlimited Socratic, Multi-method, and explanation level selection.",
     },
     {
       q: "What subjects does Solvai cover?",
