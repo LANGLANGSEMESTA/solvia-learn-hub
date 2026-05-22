@@ -208,21 +208,29 @@ function PremiumStatus({ userId, email }: { userId: string; email: string }) {
   const [subscription, setSubscription] = useState<{
     is_premium: boolean;
     premium_until: string | null;
+    plan: string | null;
   } | null>(null);
 
   useEffect(() => {
     supabase
       .from("subscriptions")
-      .select("is_premium, premium_until")
+      .select("is_premium, premium_until, plan")
       .eq("user_id", userId)
-      .single()
+      .maybeSingle()
       .then(({ data }) => setSubscription(data));
   }, [userId]);
 
   const isAdmin = ADMIN_EMAILS.includes(email);
-  const isPremium = isAdmin || (subscription?.is_premium &&
+  const isActive = subscription?.is_premium &&
     subscription?.premium_until &&
-    new Date(subscription.premium_until) > new Date());
+    new Date(subscription.premium_until) > new Date();
+
+  const plan = isAdmin ? "pro" : isActive ? (subscription?.plan ?? "basic") : "free"
+  const planLabel = plan === "pro" ? "Pro" : plan === "basic" ? "Basic" : "Free"
+
+  const expiry = subscription?.premium_until
+    ? new Date(subscription.premium_until).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    : null
 
   return (
     <section className="mt-8 rounded-xl border border-border/60 bg-card p-5">
@@ -231,30 +239,39 @@ function PremiumStatus({ userId, email }: { userId: string; email: string }) {
           <div className="flex items-center gap-2">
             <h2 className="font-serif text-lg font-semibold">Membership</h2>
             {isAdmin && (
-              <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
-                Admin
-              </span>
+              <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">Admin</span>
             )}
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+              plan === "pro" ? "bg-primary/10 text-primary" :
+              plan === "basic" ? "bg-amber-100 text-amber-700" :
+              "bg-muted text-muted-foreground"
+            }`}>
+              {planLabel}
+            </span>
           </div>
-          {isAdmin ? (
-            <p className="mt-1 text-sm text-primary font-medium">✦ Full access</p>
-          ) : isPremium ? (
-            <>
-              <p className="mt-1 text-sm text-primary font-medium">✦ Premium</p>
-              <p className="text-xs text-muted-foreground">
-                Expires {new Date(subscription!.premium_until!).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-              </p>
-            </>
+
+          {plan === "free" ? (
+            <p className="mt-1 text-sm text-muted-foreground">Quick mode 10x/day · Math only</p>
           ) : (
-            <p className="mt-1 text-sm text-muted-foreground">Free plan · 10 problems/day</p>
+            <>
+              <p className="mt-1 text-sm text-primary font-medium">
+                {plan === "pro" ? "✦ Unlimited Socratic, Multi-method & all features" : "✦ Unlimited Quick & Full · Physics & Chemistry"}
+              </p>
+              {expiry && !isAdmin && (
+                <p className="text-xs text-muted-foreground">Expires {expiry}</p>
+              )}
+            </>
           )}
         </div>
-        {!isPremium && (
-          <Link
-            to="/upgrade"
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
+
+        {plan === "free" && (
+          <Link to="/upgrade" className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
             Upgrade →
+          </Link>
+        )}
+        {plan === "basic" && (
+          <Link to="/upgrade" className="inline-flex items-center gap-1.5 rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/5">
+            Upgrade to Pro →
           </Link>
         )}
       </div>
