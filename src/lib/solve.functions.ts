@@ -384,6 +384,7 @@ export function getWeaknessData() {
     attempts: data.attempts,
   }));
 }
+
 // ─── Practice Questions ──────────────────────────────────────────
 type PracticeInput = { topic: string; count?: number }
 
@@ -402,16 +403,12 @@ export const generatePracticeQuestions = createServerFn({ method: "POST" })
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 1000,
+        max_tokens: 800,
         messages: [{
           role: "user",
-          content: `Generate ${data.count ?? 5} practice questions for ${data.topic}.
+          content: `Generate ${data.count ?? 3} short practice questions for ${data.topic}. Keep each question brief.
 Return ONLY valid JSON array, no markdown, no code fences:
-[{"question": "...", "hint": "...", "answer": "...", "explanation": "..."}]
-- Questions should be clear and concise
-- Hints should guide without giving away the answer
-- Answers should be specific (numbers, expressions, or short phrases)
-- Explanations should be 1-2 sentences`,
+[{"question":"...","hint":"...","answer":"...","explanation":"..."}]`,
         }],
       }),
     })
@@ -419,22 +416,11 @@ Return ONLY valid JSON array, no markdown, no code fences:
     if (!res.ok) throw new Error(`DeepSeek error: ${await res.text()}`)
     const json = await res.json()
     const text = json.choices?.[0]?.message?.content ?? "[]"
-try {
-  const cleaned = text.replace(/```json|```/g, "").trim()
-  
-  // Coba parse array langsung
-  const parsed = JSON.parse(cleaned)
-  if (Array.isArray(parsed)) {
-    return { questions: parsed }
-  }
-  // Kalau object dengan key questions
-  if (parsed.questions && Array.isArray(parsed.questions)) {
-    return { questions: parsed.questions }
-  }
-  return { questions: [] }
-} catch {
-  // Log untuk debug
-  console.error("Failed to parse practice questions:", text)
-  return { questions: [] }
-}
+    try {
+      const cleaned = text.replace(/```json|```/g, "").trim()
+      const parsed = JSON.parse(cleaned)
+      return { questions: Array.isArray(parsed) ? parsed : [] }
+    } catch {
+      return { questions: [] }
+    }
   })

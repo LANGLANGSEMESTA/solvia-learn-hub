@@ -40,6 +40,9 @@ function PracticePage() {
   const [showAnswer, setShowAnswer] = useState(false)
   const [results, setResults] = useState<SessionResult[]>([])
   const [phase, setPhase] = useState<"select" | "loading" | "quiz" | "done">("select")
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" })
@@ -54,6 +57,7 @@ function PracticePage() {
   }, [user])
 
   useEffect(() => {
+    if (!mounted) return
     const data = getWeaknessData()
     if (data && data.length > 0) {
       const weakest = data.reduce((a, b) => a.attempts < b.attempts ? a : b)
@@ -61,7 +65,7 @@ function PracticePage() {
     } else {
       setSelectedTopic("algebra")
     }
-  }, [])
+  }, [mounted])
 
   async function startPractice() {
     if (!selectedTopic) return
@@ -72,8 +76,7 @@ function PracticePage() {
     setShowHint(false)
     setShowAnswer(false)
     try {
-      const res = await callGenerateQuestions({ data: { topic: selectedTopic, count: 5 } })
-      console.log("Practice questions response:", JSON.stringify(res))
+      const res = await callGenerateQuestions({ data: { topic: selectedTopic, count: 3 } })
       if (!res.questions || res.questions.length === 0) {
         toast.error("Failed to generate questions. Try again.")
         setPhase("select")
@@ -82,7 +85,6 @@ function PracticePage() {
       setQuestions(res.questions)
       setPhase("quiz")
     } catch (e: any) {
-      console.error("Practice error:", e)
       toast.error(e?.message || "Failed to generate questions.")
       setPhase("select")
     }
