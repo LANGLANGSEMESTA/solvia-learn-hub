@@ -419,10 +419,22 @@ Return ONLY valid JSON array, no markdown, no code fences:
     if (!res.ok) throw new Error(`DeepSeek error: ${await res.text()}`)
     const json = await res.json()
     const text = json.choices?.[0]?.message?.content ?? "[]"
-    try {
-      const cleaned = text.replace(/```json|```/g, "").trim()
-      return { questions: JSON.parse(cleaned) }
-    } catch {
-      return { questions: [] }
-    }
+try {
+  const cleaned = text.replace(/```json|```/g, "").trim()
+  
+  // Coba parse array langsung
+  const parsed = JSON.parse(cleaned)
+  if (Array.isArray(parsed)) {
+    return { questions: parsed }
+  }
+  // Kalau object dengan key questions
+  if (parsed.questions && Array.isArray(parsed.questions)) {
+    return { questions: parsed.questions }
+  }
+  return { questions: [] }
+} catch {
+  // Log untuk debug
+  console.error("Failed to parse practice questions:", text)
+  return { questions: [] }
+}
   })
