@@ -406,9 +406,14 @@ export const generatePracticeQuestions = createServerFn({ method: "POST" })
         max_tokens: 800,
         messages: [{
           role: "user",
-          content: `Generate ${data.count ?? 3} short practice questions for ${data.topic}. Keep each question brief.
+          content: `Generate ${data.count ?? 3} short practice questions for ${data.topic}.
 Return ONLY valid JSON array, no markdown, no code fences:
-[{"question":"...","hint":"...","answer":"...","explanation":"..."}]`,
+[{"question":"...","hint":"...","answer":"...","explanation":"..."}]
+Rules:
+- Wrap ALL math expressions with $...$ for inline or $$...$$ for display
+- Keep questions brief and clear
+- Hints guide without giving the answer
+- Answers are specific (numbers or short expressions)`,
         }],
       }),
     })
