@@ -25,6 +25,11 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://solvai.app/og-image.png" },
+      { property: "og:url", content: "https://solvai.app" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:image", content: "https://solvai.app/og-image.png" },
       { title: "Solvai — AI tutor for Math, Physics & Chemistry" },
       {
         name: "description",
