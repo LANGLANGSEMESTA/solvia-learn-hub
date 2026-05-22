@@ -325,8 +325,14 @@ function SolvePage() {
     (tab === "camera" && !!captured);
 
   async function startCamera() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        facingMode: { ideal: "environment" }, // rear camera
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      } 
+    });
       streamRef.current = stream;
       if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
       setCameraOn(true);
