@@ -5,8 +5,7 @@ import { toast } from "sonner";
 import { Loader2, ArrowLeft, Brain, ChevronRight, RotateCcw, Trophy } from "lucide-react";
 import { MathRenderer } from "@/components/MathRenderer";
 import { useAuth } from "@/hooks/use-auth";
-import { getDailyUsage } from "@/lib/solve.functions";
-import { getWeaknessData } from "@/lib/solve.functions";
+import { getDailyUsage, getWeaknessData, generatePracticeQuestions } from "@/lib/solve.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/practice")({
@@ -38,39 +37,11 @@ type SessionResult = {
   correct: boolean
 }
 
-async function generateQuestions(topic: string, count: number = 5): Promise<Question[]> {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      messages: [{
-        role: "user",
-        content: `Generate ${count} practice questions for ${topic}. 
-Return ONLY valid JSON array, no markdown:
-[{"question": "...", "hint": "...", "answer": "...", "explanation": "..."}]
-- Questions should be clear and concise
-- Hints should guide without giving away the answer
-- Answers should be specific (numbers, expressions, or short phrases)
-- Explanations should be 1-2 sentences`
-      }]
-    })
-  })
-  const data = await res.json()
-  const text = data.content?.[0]?.text ?? "[]"
-  try {
-    const cleaned = text.replace(/```json|```/g, "").trim()
-    return JSON.parse(cleaned)
-  } catch {
-    return []
-  }
-}
-
 function PracticePage() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
   const callGetDailyUsage = useServerFn(getDailyUsage)
+  const callGenerateQuestions = useServerFn(generatePracticeQuestions)
 
   const [plan, setPlan] = useState<string | null>(null)
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
@@ -94,16 +65,11 @@ function PracticePage() {
     }
   }, [user])
 
-  // Auto-select weakest topic
   useEffect(() => {
     const data = getWeaknessData()
     if (data && data.length > 0) {
       const weakest = data.reduce((a, b) => a.attempts < b.attempts ? a : b)
-      if (weakest.attempts === 0) {
-        setSelectedTopic("algebra")
-      } else {
-        setSelectedTopic(weakest.topic)
-      }
+      setSelectedTopic(weakest.attempts === 0 ? "algebra" : weakest.topic)
     } else {
       setSelectedTopic("algebra")
     }
@@ -117,23 +83,24 @@ function PracticePage() {
     setUserAnswer("")
     setShowHint(false)
     setShowAnswer(false)
-    const qs = await generateQuestions(selectedTopic)
-    if (qs.length === 0) {
-      toast.error("Failed to generate questions. Try again.")
+    try {
+      const res = await callGenerateQuestions({ data: { topic: selectedTopic, count: 5 } })
+      if (!res.questions || res.questions.length === 0) {
+        toast.error("Failed to generate questions. Try again.")
+        setPhase("select")
+        return
+      }
+      setQuestions(res.questions)
+      setPhase("quiz")
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to generate questions.")
       setPhase("select")
-      return
     }
-    setQuestions(qs)
-    setPhase("quiz")
   }
 
   function handleAnswer(correct: boolean) {
     const current = questions[currentIdx]
-    setResults(prev => [...prev, {
-      question: current,
-      userAnswer,
-      correct,
-    }])
+    setResults(prev => [...prev, { question: current, userAnswer, correct }])
     if (currentIdx + 1 >= questions.length) {
       setPhase("done")
     } else {
@@ -148,7 +115,6 @@ function PracticePage() {
     return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
   }
 
-  // Gate: Pro only
   if (plan !== null && plan !== "pro") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -185,27 +151,21 @@ function PracticePage() {
       </header>
 
       <main className="mx-auto w-full max-w-[600px] px-4 py-8 sm:px-6">
-
-        {/* Select phase */}
         {phase === "select" && (
           <div className="space-y-6">
             <div className="text-center">
               <h1 className="font-serif text-2xl font-semibold">What do you want to practice?</h1>
               <p className="mt-2 text-sm text-muted-foreground">We picked your weakest topic — but you can change it.</p>
             </div>
-
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {TOPICS.map(t => (
                 <button key={t.key} onClick={() => setSelectedTopic(t.key)}
                   className={cn("rounded-xl border px-4 py-3 text-sm font-medium transition text-left",
-                    selectedTopic === t.key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:bg-muted"
-                  )}>
-                  {t.label}
-                  {selectedTopic === t.key && <span className="ml-1 text-xs">✓</span>}
+                    selectedTopic === t.key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:bg-muted")}>
+                  {t.label}{selectedTopic === t.key && <span className="ml-1 text-xs">✓</span>}
                 </button>
               ))}
             </div>
-
             <button onClick={startPractice} disabled={!selectedTopic}
               className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
               <ChevronRight className="h-5 w-5" />Start Practice
@@ -213,7 +173,6 @@ function PracticePage() {
           </div>
         )}
 
-        {/* Loading phase */}
         {phase === "loading" && (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -221,30 +180,23 @@ function PracticePage() {
           </div>
         )}
 
-        {/* Quiz phase */}
         {phase === "quiz" && questions[currentIdx] && (
           <div className="space-y-4">
-            {/* Progress */}
             <div className="flex items-center gap-3">
               <div className="flex gap-1 flex-1">
                 {questions.map((_, i) => (
                   <div key={i} className={cn("h-1.5 flex-1 rounded-full transition",
-                    i < currentIdx ? "bg-primary" :
-                    i === currentIdx ? "bg-primary/50" :
-                    "bg-border"
-                  )} />
+                    i < currentIdx ? "bg-primary" : i === currentIdx ? "bg-primary/50" : "bg-border")} />
                 ))}
               </div>
               <span className="text-xs text-muted-foreground">{currentIdx + 1}/{questions.length}</span>
             </div>
 
-            {/* Question */}
             <div className="rounded-xl border border-primary/30 bg-primary/5 p-5">
               <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-2">Question {currentIdx + 1}</p>
               <p className="text-base font-medium"><MathRenderer text={questions[currentIdx].question} /></p>
             </div>
 
-            {/* Hint */}
             {!showHint ? (
               <button onClick={() => setShowHint(true)} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
                 Show hint
@@ -256,26 +208,18 @@ function PracticePage() {
               </div>
             )}
 
-            {/* Answer input */}
             {!showAnswer && (
               <div className="space-y-3">
-                <textarea
-                  value={userAnswer}
-                  onChange={e => setUserAnswer(e.target.value)}
-                  rows={3}
+                <textarea value={userAnswer} onChange={e => setUserAnswer(e.target.value)} rows={3}
                   placeholder="Write your answer here..."
-                  className="w-full rounded-xl border border-border bg-card p-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-                <div className="flex gap-2">
-                  <button onClick={() => setShowAnswer(true)}
-                    className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-                    Check Answer
-                  </button>
-                </div>
+                  className="w-full rounded-xl border border-border bg-card p-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                <button onClick={() => setShowAnswer(true)}
+                  className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+                  Check Answer
+                </button>
               </div>
             )}
 
-            {/* Show answer + self-evaluate */}
             {showAnswer && (
               <div className="space-y-3">
                 <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4">
@@ -299,7 +243,6 @@ function PracticePage() {
           </div>
         )}
 
-        {/* Done phase */}
         {phase === "done" && (
           <div className="space-y-6">
             <div className="text-center space-y-2">
@@ -307,12 +250,9 @@ function PracticePage() {
                 <Trophy className="h-8 w-8 text-primary" />
               </div>
               <h2 className="font-serif text-2xl font-semibold">Session complete!</h2>
-              <p className="text-sm text-muted-foreground">
-                {results.filter(r => r.correct).length} / {results.length} correct
-              </p>
+              <p className="text-sm text-muted-foreground">{results.filter(r => r.correct).length} / {results.length} correct</p>
             </div>
 
-            {/* Score bar */}
             <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex justify-between text-xs text-muted-foreground mb-2">
                 <span>Score</span>
@@ -324,7 +264,6 @@ function PracticePage() {
               </div>
             </div>
 
-            {/* Review */}
             <div className="space-y-3">
               {results.map((r, i) => (
                 <div key={i} className={cn("rounded-xl border p-4", r.correct ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50")}>

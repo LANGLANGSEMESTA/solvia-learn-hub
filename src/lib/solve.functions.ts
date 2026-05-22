@@ -384,3 +384,45 @@ export function getWeaknessData() {
     attempts: data.attempts,
   }));
 }
+// ─── Practice Questions ──────────────────────────────────────────
+type PracticeInput = { topic: string; count?: number }
+
+export const generatePracticeQuestions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: PracticeInput) => d)
+  .handler(async ({ data }) => {
+    const apiKey = process.env.DEEPSEEK_API_KEY
+    if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not configured")
+
+    const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Generate ${data.count ?? 5} practice questions for ${data.topic}.
+Return ONLY valid JSON array, no markdown, no code fences:
+[{"question": "...", "hint": "...", "answer": "...", "explanation": "..."}]
+- Questions should be clear and concise
+- Hints should guide without giving away the answer
+- Answers should be specific (numbers, expressions, or short phrases)
+- Explanations should be 1-2 sentences`,
+        }],
+      }),
+    })
+
+    if (!res.ok) throw new Error(`DeepSeek error: ${await res.text()}`)
+    const json = await res.json()
+    const text = json.choices?.[0]?.message?.content ?? "[]"
+    try {
+      const cleaned = text.replace(/```json|```/g, "").trim()
+      return { questions: JSON.parse(cleaned) }
+    } catch {
+      return { questions: [] }
+    }
+  })
