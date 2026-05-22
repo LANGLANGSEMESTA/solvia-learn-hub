@@ -225,7 +225,23 @@ function UpgradeModal({ reason, onClose }: { reason: string; onClose: () => void
     </div>
   )
 }
+const LOADING_TEXTS = [
+  "Analyzing your problem...",
+  "Building step-by-step solution...",
+  "Checking the math...",
+  "Almost done...",
+]
 
+function RotatingText() {
+  const [idx, setIdx] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIdx(i => (i + 1) % LOADING_TEXTS.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [])
+  return <span>{LOADING_TEXTS[idx]}</span>
+}
 function SolvePage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -572,19 +588,25 @@ function SolvePage() {
         )}
 
         <button disabled={!hasInput || loading} onClick={handleSolve} className="mt-10 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground shadow-md transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50">
-          <Sparkles className="h-5 w-5" />{loading ? "Solving..." : "Solve it"}
-        </button>
+  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+  {loading ? "Solving..." : "Solve it"}
+</button>
 
         {loading && (
-          <div className="mt-8 rounded-xl border border-border bg-card p-6 text-center">
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-              <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-              <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-primary" />
-            </div>
-            <p className="mt-4 font-serif text-base text-foreground/80">Your AI tutor is thinking...</p>
-          </div>
-        )}
+  <div className="mt-8 rounded-xl border border-border bg-card p-8 text-center">
+    <div className="flex items-center justify-center">
+      <div className="relative h-14 w-14">
+        <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+        <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+        <Sparkles className="absolute inset-0 m-auto h-5 w-5 text-primary" />
+      </div>
+    </div>
+    <p className="mt-4 font-serif text-lg text-foreground">
+      <RotatingText />
+    </p>
+    <p className="mt-1 text-xs text-muted-foreground">This usually takes 5–10 seconds</p>
+  </div>
+)}
 
         {!loading && result && resultMode && (
           <div className="mt-8 space-y-4">
