@@ -67,6 +67,7 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
           <Link to="/" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Home</Link>
           <Link to="/solve" className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted">Solve</Link>
           <Link to="/history" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">History</Link>
+          <Link to="/practice" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Practice</Link>
           {user && <Link to="/profile" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Profile</Link>}
           {user && (user.email === "irsanwu@gmail.com" || user.email === "irsanwuu@gmail.com") && (
             <Link to="/admin" className="rounded-md px-3 py-2 text-sm font-medium text-primary transition hover:bg-muted">Admin</Link>
