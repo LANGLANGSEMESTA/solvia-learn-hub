@@ -7,7 +7,7 @@ import { BlockMath } from 'react-katex';
 import { MathRenderer } from "@/components/MathRenderer";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import {
-  Sigma, ArrowRight, Camera, Keyboard, Zap, BookOpen, HelpCircle,
+  Sigma, ArrowRight, Keyboard, Zap, BookOpen, HelpCircle,
   Sparkles, Upload, Volume2, RefreshCw, MessageCircle, Send, Lightbulb,
   CheckCircle2, Bookmark, Loader2, Copy, Share2, Printer, Lock,
 } from "lucide-react";
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/solve")({
   head: () => ({
     meta: [
       { title: "Solve — Solvai" },
-      { name: "description", content: "Solve any STEM problem with Solvai. Upload a photo, type your question, scan a PDF, or use your camera." },
+      { name: "description", content: "Solve any STEM problem with Solvai. Upload a photo, type your question, or scan a PDF." },
     ],
   }),
   component: SolvePage,
@@ -68,6 +68,7 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
           <Link to="/solve" className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted">Solve</Link>
           <Link to="/history" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">History</Link>
           <Link to="/practice" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Practice</Link>
+          <Link to="/daily" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Daily</Link>
           {user && <Link to="/profile" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Profile</Link>}
           {user && (user.email === "irsanwu@gmail.com" || user.email === "irsanwuu@gmail.com") && (
             <Link to="/admin" className="rounded-md px-3 py-2 text-sm font-medium text-primary transition hover:bg-muted">Admin</Link>
@@ -95,7 +96,7 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
   );
 }
 
-type TabKey = "upload" | "type" | "camera";
+type TabKey = "upload" | "type";
 type Subject = "Math" | "Physics" | "Chemistry";
 type Mode = "quick" | "full" | "socratic" | "multi";
 type Level = "kid" | "middle" | "high" | "university" | "expert";
@@ -108,10 +109,9 @@ type DailyUsage = {
   allowedSubjects: string[];
 };
 
-const TABS: { key: TabKey; label: string; icon: typeof Camera }[] = [
+const TABS: { key: TabKey; label: string; icon: typeof Upload }[] = [
   { key: "upload", label: "Upload", icon: Upload },
   { key: "type", label: "Type", icon: Keyboard },
-  { key: "camera", label: "Camera", icon: Camera },
 ];
 
 const LEVELS: { key: Level; label: string }[] = [
@@ -145,12 +145,6 @@ function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }
   });
 }
 
-function dataUrlToBase64(dataUrl: string) {
-  const [meta, data] = dataUrl.split(",");
-  const mediaType = /data:(.*?);base64/.exec(meta)?.[1] || "image/png";
-  return { base64: data, mediaType };
-}
-
 async function ocrImage(file: File): Promise<string> {
   const worker = await createWorker("eng+ind");
   const { data: { text } } = await worker.recognize(file);
@@ -173,38 +167,15 @@ function detectPlottableExpressions(problemText: string): string[] {
   return found.slice(0, 4);
 }
 
-// ─── Upgrade Modal ───────────────────────────────────────────────
 function UpgradeModal({ reason, onClose }: { reason: string; onClose: () => void }) {
   const messages: Record<string, { title: string; desc: string; cta: string }> = {
-    LIMIT_QUICK: {
-      title: "Quick limit reached",
-      desc: "You've used all 10 free Quick solves today. Upgrade to Basic for unlimited access.",
-      cta: "Upgrade to Basic — Rp49.000/mo",
-    },
-    LIMIT_TRIAL: {
-      title: "Trial used for today",
-      desc: "You've used your free trial for this mode today. Upgrade to unlock unlimited access.",
-      cta: "See upgrade options",
-    },
-    LIMIT_SUBJECT: {
-      title: "Physics & Chemistry are premium",
-      desc: "Free plan includes Math only. Upgrade to Basic or Pro for all 3 subjects.",
-      cta: "Upgrade to Basic — Rp49.000/mo",
-    },
-    LIMIT_LEVEL: {
-      title: "Level selection is Pro only",
-      desc: "Choosing explanation level (Kid → Expert) requires a Pro plan.",
-      cta: "Upgrade to Pro — Rp89.000/mo",
-    },
-    default: {
-      title: "Upgrade required",
-      desc: "This feature requires a paid plan.",
-      cta: "See upgrade options",
-    },
+    LIMIT_QUICK: { title: "Quick limit reached", desc: "You've used all 10 free Quick solves today. Upgrade to Basic for unlimited access.", cta: "Upgrade to Basic — Rp49.000/mo" },
+    LIMIT_TRIAL: { title: "Trial used for today", desc: "You've used your free trial for this mode today. Upgrade to unlock unlimited access.", cta: "See upgrade options" },
+    LIMIT_SUBJECT: { title: "Physics & Chemistry are premium", desc: "Free plan includes Math only. Upgrade to Basic or Pro for all 3 subjects.", cta: "Upgrade to Basic — Rp49.000/mo" },
+    LIMIT_LEVEL: { title: "Level selection is Pro only", desc: "Choosing explanation level (Kid → Expert) requires a Pro plan.", cta: "Upgrade to Pro — Rp89.000/mo" },
+    default: { title: "Upgrade required", desc: "This feature requires a paid plan.", cta: "See upgrade options" },
   }
-
   const m = messages[reason] ?? messages.default
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
@@ -225,6 +196,7 @@ function UpgradeModal({ reason, onClose }: { reason: string; onClose: () => void
     </div>
   )
 }
+
 const LOADING_TEXTS = [
   "Analyzing your problem...",
   "Building step-by-step solution...",
@@ -235,13 +207,12 @@ const LOADING_TEXTS = [
 function RotatingText() {
   const [idx, setIdx] = useState(0)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIdx(i => (i + 1) % LOADING_TEXTS.length)
-    }, 2500)
+    const interval = setInterval(() => { setIdx(i => (i + 1) % LOADING_TEXTS.length) }, 2500)
     return () => clearInterval(interval)
   }, [])
   return <span>{LOADING_TEXTS[idx]}</span>
 }
+
 function SolvePage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -255,14 +226,9 @@ function SolvePage() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [pdf, setPdf] = useState<File | null>(null);
   const [text, setText] = useState("");
-  const [captured, setCaptured] = useState<string | null>(null);
   const [subject, setSubject] = useState<Subject>("Math");
   const [mode, setMode] = useState<Mode>("quick");
   const [level, setLevel] = useState<Level>("high");
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [cameraOn, setCameraOn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnyResult | null>(null);
   const [resultMode, setResultMode] = useState<Mode | null>(null);
@@ -298,80 +264,20 @@ function SolvePage() {
   }
 
   const getModeDesc = (m: Mode) => {
-    if (m === "quick") {
-      if (plan === "free") return `${counts.quick ?? 0}/${limits.quick} today`
-      return "Fast answer + shortcut"
-    }
-    if (m === "full") {
-      if (plan === "free") return isModeTrialUsed("full") ? "Trial used · Basic+" : "1 free trial/day"
-      return "Step by step"
-    }
-    if (m === "socratic") {
-      if (plan === "free") return isModeTrialUsed("socratic") ? "Trial used · Pro" : "1 free trial/day"
-      if (plan === "basic") return isModeTrialUsed("socratic") ? "Trial used · Pro" : "1 free trial/day"
-      return "Guided hints"
-    }
-    if (m === "multi") {
-      if (plan === "free") return isModeTrialUsed("multi") ? "Trial used · Pro" : "1 free trial/day"
-      if (plan === "basic") return isModeTrialUsed("multi") ? "Trial used · Pro" : "1 free trial/day"
-      return "3 ways to solve"
-    }
+    if (m === "quick") { if (plan === "free") return `${counts.quick ?? 0}/${limits.quick} today`; return "Fast answer + shortcut" }
+    if (m === "full") { if (plan === "free") return isModeTrialUsed("full") ? "Trial used · Basic+" : "1 free trial/day"; return "Step by step" }
+    if (m === "socratic") { if (plan !== "pro") return isModeTrialUsed("socratic") ? "Trial used · Pro" : "1 free trial/day"; return "Guided hints" }
+    if (m === "multi") { if (plan !== "pro") return isModeTrialUsed("multi") ? "Trial used · Pro" : "1 free trial/day"; return "3 ways to solve" }
     return ""
   }
 
-  const hasInput =
-    (tab === "upload" && (!!photo || !!pdf)) ||
-    (tab === "type" && text.trim().length > 0) ||
-    (tab === "camera" && !!captured);
-
-  async function startCamera() {
-  try {
-    // Try rear camera first
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { 
-        facingMode: "environment",
-        width: { ideal: 1920 },
-        height: { ideal: 1080 }
-      } 
-    }).catch(() => {
-      // Fallback: any camera
-      return navigator.mediaDevices.getUserMedia({ video: true })
-    })
-    streamRef.current = stream;
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.setAttribute("playsinline", "true");
-      videoRef.current.setAttribute("autoplay", "true");
-      await videoRef.current.play();
-    }
-    setCameraOn(true);
-  } catch (e) {
-    console.error(e);
-    toast.error("Could not access camera. Please check permissions.");
-  }
-}
-
-  function stopCamera() {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    setCameraOn(false);
-  }
-
-  function capture() {
-    const v = videoRef.current; const c = canvasRef.current;
-    if (!v || !c) return;
-    c.width = v.videoWidth; c.height = v.videoHeight;
-    c.getContext("2d")?.drawImage(v, 0, 0);
-    setCaptured(c.toDataURL("image/png"));
-    stopCamera();
-  }
+  const hasInput = (tab === "upload" && (!!photo || !!pdf)) || (tab === "type" && text.trim().length > 0)
 
   async function buildPayload() {
     const payload: any = { mode, subject, level };
     if (tab === "type") payload.text = text.trim();
     else if (tab === "upload" && photo) { payload.text = await ocrImage(photo); }
     else if (tab === "upload" && pdf) { const { base64 } = await fileToBase64(pdf); payload.pdfBase64 = base64; }
-    else if (tab === "camera" && captured) { const { base64, mediaType } = dataUrlToBase64(captured); payload.imageBase64 = base64; payload.imageMediaType = mediaType; }
     return payload;
   }
 
@@ -396,17 +302,11 @@ function SolvePage() {
         const { data, error } = await supabase.from("problems").insert({ user_id: user.id, subject, mode, input_type: inputType, input_text: payload.text || null, result: res.result as any }).select("id").single();
         if (!error && data) setSavedId(data.id);
       }
-      // Refresh usage
       callGetDailyUsage({ data: undefined }).then(setDailyUsage).catch(console.error);
     } catch (e: any) {
-      console.error(e);
       const msg: string = e?.message ?? ""
-      if (msg.startsWith("LIMIT_")) {
-        const reason = msg.split(":")[0]
-        setUpgradeReason(reason)
-      } else {
-        toast.error(msg || "Something went wrong. Please try again.");
-      }
+      if (msg.startsWith("LIMIT_")) { setUpgradeReason(msg.split(":")[0]) }
+      else { toast.error(msg || "Something went wrong. Please try again."); }
     } finally { setLoading(false); }
   }
 
@@ -462,8 +362,6 @@ function SolvePage() {
     finally { setChatLoading(false); }
   }
 
-  useEffect(() => () => stopCamera(), []);
-
   if (authLoading || !user) {
     return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
@@ -489,7 +387,7 @@ function SolvePage() {
           )}
         </div>
 
-        <div className="mt-8 grid grid-cols-3 gap-1 rounded-lg border border-border bg-card p-1">
+        <div className="mt-8 grid grid-cols-2 gap-1 rounded-lg border border-border bg-card p-1">
           {TABS.map((t) => {
             const Icon = t.icon; const active = tab === t.key;
             return (
@@ -506,7 +404,7 @@ function SolvePage() {
               <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
               <p className="mt-4 text-sm font-medium">{photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}</p>
               <p className="mt-1 text-xs text-muted-foreground">Accepts JPG, PNG, PDF — up to 10MB</p>
-              <input type="file" accept="image/jpeg,image/png,image/jpg,application/pdf" className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+              <input type="file" accept="image/jpeg,image/png,image/jpg,application/pdf" capture="environment" className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
                 onChange={(e) => { const f = e.target.files?.[0] ?? null; if (!f) { setPhoto(null); setPdf(null); return; } if (f.type === "application/pdf") { setPdf(f); setPhoto(null); } else { setPhoto(f); setPdf(null); } }} />
             </div>
           )}
@@ -521,34 +419,8 @@ function SolvePage() {
               </div>
             </div>
           )}
-          {tab === "camera" && (
-            <div className="rounded-xl border border-border bg-card p-4">
-              {captured ? (
-                <div className="space-y-3">
-                  <img src={captured} alt="Captured problem" className="w-full rounded-lg border border-border" />
-                  <button onClick={() => { setCaptured(null); startCamera(); }} className="w-full rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted">Retake</button>
-                </div>
-              ) : cameraOn ? (
-                <div className="space-y-3">
-                  <video ref={videoRef} className="w-full rounded-lg border border-border bg-black" playsInline autoPlay muted />
-                  <div className="flex gap-2">
-                    <button onClick={capture} className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Capture</button>
-                    <button onClick={stopCamera} className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted">Cancel</button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <Camera className="h-10 w-10 text-primary" strokeWidth={1.5} />
-                  <p className="mt-4 text-sm font-medium">Use your webcam to scan a problem</p>
-                  <button onClick={startCamera} className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"><Camera className="h-4 w-4" />Activate camera</button>
-                </div>
-              )}
-              <canvas ref={canvasRef} className="hidden" />
-            </div>
-          )}
         </div>
 
-        {/* Subject */}
         <div className="mt-10">
           <div className="mb-3 flex items-center justify-between">
             <label className="text-sm font-medium">Subject</label>
@@ -570,7 +442,6 @@ function SolvePage() {
           </div>
         </div>
 
-        {/* Mode */}
         <div className="mt-8">
           <label className="mb-3 block text-sm font-medium">Mode</label>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
@@ -581,7 +452,6 @@ function SolvePage() {
           </div>
         </div>
 
-        {/* Level */}
         {mode !== "socratic" && (
           <div className="mt-6">
             <div className="mb-3 flex items-center justify-between">
@@ -606,25 +476,23 @@ function SolvePage() {
         )}
 
         <button disabled={!hasInput || loading} onClick={handleSolve} className="mt-10 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground shadow-md transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50">
-  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
-  {loading ? "Solving..." : "Solve it"}
-</button>
+          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+          {loading ? "Solving..." : "Solve it"}
+        </button>
 
         {loading && (
-  <div className="mt-8 rounded-xl border border-border bg-card p-8 text-center">
-    <div className="flex items-center justify-center">
-      <div className="relative h-14 w-14">
-        <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
-        <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-        <Sparkles className="absolute inset-0 m-auto h-5 w-5 text-primary" />
-      </div>
-    </div>
-    <p className="mt-4 font-serif text-lg text-foreground">
-      <RotatingText />
-    </p>
-    <p className="mt-1 text-xs text-muted-foreground">This usually takes 5–10 seconds</p>
-  </div>
-)}
+          <div className="mt-8 rounded-xl border border-border bg-card p-8 text-center">
+            <div className="flex items-center justify-center">
+              <div className="relative h-14 w-14">
+                <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                <Sparkles className="absolute inset-0 m-auto h-5 w-5 text-primary" />
+              </div>
+            </div>
+            <p className="mt-4 font-serif text-lg text-foreground"><RotatingText /></p>
+            <p className="mt-1 text-xs text-muted-foreground">This usually takes 5–10 seconds</p>
+          </div>
+        )}
 
         {!loading && result && resultMode && (
           <div className="mt-8 space-y-4">
