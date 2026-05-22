@@ -429,3 +429,93 @@ Rules:
       return { questions: [] }
     }
   })
+// ─── Daily Challenge ─────────────────────────────────────────────
+export const getDailyChallenge = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = context
+
+    const today = new Date().toISOString().slice(0, 10) // "2026-05-22"
+
+    // Cek apakah soal hari ini sudah ada
+    const { data: existing } = await supabase
+      .from("daily_challenges")
+      .select("*")
+      .eq("date", today)
+      .maybeSingle()
+
+    if (existing) return { challenge: existing }
+
+    // Generate soal baru
+    const topics = ["algebra", "calculus", "statistics", "geometry", "trigonometry", "arithmetic"]
+    const topic = topics[new Date().getDay() % topics.length] // rotate per hari
+
+    const apiKey = process.env.DEEPSEEK_API_KEY
+    if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not configured")
+
+    const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 400,
+        messages: [{
+          role: "user",
+          content: `Generate 1 short ${topic} practice question for high school level.
+Return ONLY valid JSON, no markdown:
+{"topic":"${topic}","question":"...","hint":"...","answer":"...","explanation":"..."}
+- Wrap math with $...$ for inline
+- Keep it brief and clear`,
+        }],
+      }),
+    })
+
+    if (!res.ok) throw new Error(`DeepSeek error: ${await res.text()}`)
+    const json = await res.json()
+    const text = json.choices?.[0]?.message?.content ?? "{}"
+    
+    let challenge: any
+    try {
+      const cleaned = text.replace(/```json|```/g, "").trim()
+      challenge = JSON.parse(cleaned)
+    } catch {
+      throw new Error("Failed to parse daily challenge")
+    }
+
+    // Simpan ke Supabase
+    const { data: saved } = await supabase
+      .from("daily_challenges")
+      .insert({ date: today, topic, ...challenge })
+      .select()
+      .single()
+
+    return { challenge: saved ?? { date: today, topic, ...challenge } }
+  })
+
+export const submitDailyChallenge = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { correct: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const { supabase } = context
+    const { data: { user } } = await supabase.auth.getUser()
+    const today = new Date().toISOString().slice(0, 10)
+
+    // Cek sudah submit hari ini belum
+    const { data: existing } = await supabase
+      .from("daily_challenge_submissions")
+      .select("id")
+      .eq("user_id", user!.id)
+      .eq("date", today)
+      .maybeSingle()
+
+    if (existing) return { alreadySubmitted: true }
+
+    await supabase
+      .from("daily_challenge_submissions")
+      .insert({ user_id: user!.id, date: today, correct: data.correct })
+
+    return { alreadySubmitted: false, correct: data.correct }
+  })
