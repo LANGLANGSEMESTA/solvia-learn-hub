@@ -36,6 +36,11 @@ const EXAMPLES: Record<Subject, string[]> = {
     "Find the pH of a 0.01 M HCl solution.",
     "How many grams are in 0.5 mol of NaCl?",
   ],
+  Biology: [
+    "Explain the difference between mitosis and meiosis.",
+    "How does photosynthesis work?",
+    "What is the role of DNA in protein synthesis?",
+  ],
 };
 
 export const Route = createFileRoute("/solve")({
@@ -97,7 +102,7 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
 }
 
 type TabKey = "upload" | "type";
-type Subject = "Math" | "Physics" | "Chemistry";
+type Subject = "Math" | "Physics" | "Chemistry" | "Biology";
 type Mode = "quick" | "full" | "socratic" | "multi";
 type Level = "kid" | "middle" | "high" | "university" | "expert";
 type Plan = "free" | "basic" | "pro";
@@ -475,7 +480,7 @@ function SolvePage() {
             {plan === "free" && <span className="text-xs text-muted-foreground">Math only on free plan</span>}
           </div>
           <div className="flex flex-wrap gap-2">
-            {(["Math", "Physics", "Chemistry"] as Subject[]).map((s) => {
+            {(["Math", "Physics", "Chemistry", "Biology"] as Subject[]).map((s) => {
               const locked = !allowedSubjects.includes(s)
               return (
                 <button key={s} onClick={() => { if (locked) { setUpgradeReason("LIMIT_SUBJECT"); return; } setSubject(s); }}
@@ -483,7 +488,7 @@ function SolvePage() {
                     subject === s && !locked ? "border-primary bg-primary/10 text-primary" :
                     locked ? "border-border bg-card text-foreground/40 cursor-not-allowed" :
                     "border-border bg-card text-foreground/70 hover:bg-muted")}>
-                  {s === "Math" ? "🧮 Math" : s === "Physics" ? "⚡ Physics" : "🧪 Chemistry"}{locked && <Lock className="h-3 w-3" />}
+                  {s === "Math" ? "🧮 Math" : s === "Physics" ? "⚡ Physics" : s === "Chemistry" ? "🧪 Chemistry" : "🔬 Biology"}{locked && <Lock className="h-3 w-3" />}
                 </button>
               )
             })}

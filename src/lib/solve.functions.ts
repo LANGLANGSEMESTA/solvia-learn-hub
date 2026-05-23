@@ -75,8 +75,8 @@ const PLAN_LIMITS: Record<Plan, Record<Mode, number>> = {
 
 const PLAN_SUBJECTS: Record<Plan, string[]> = {
   free:  ["Math"],
-  basic: ["Math", "Physics", "Chemistry"],
-  pro:   ["Math", "Physics", "Chemistry"],
+  basic: ["Math", "Physics", "Chemistry", "Biology"],
+  pro:   ["Math", "Physics", "Chemistry", "Biology"],
 }
 
 function getPlan(subscription: any): Plan {
