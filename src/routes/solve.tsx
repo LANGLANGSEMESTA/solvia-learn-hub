@@ -442,10 +442,12 @@ function SolvePage() {
 
         <div className="mt-4">
           {tab === "upload" && (
-            <div onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (!f) return; if (f.type.startsWith("image/")) { setPhoto(f); setPdf(null); } else if (f.type === "application/pdf") { setPdf(f); setPhoto(null); } }} className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-10 text-center transition hover:border-primary/50 hover:bg-muted/40">
-              <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
-              <p className="mt-4 text-sm font-medium">{photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}</p>
-              <p className="mt-1 text-xs text-muted-foreground">Accepts JPG, PNG, PDF — up to 10MB</p>
+            <div onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (!f) return; if (f.type.startsWith("image/")) { setPhoto(f); setPdf(null); } else if (f.type === "application/pdf") { setPdf(f); setPhoto(null); } }} className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-10 text-center transition hover:border-primary/60 hover:bg-primary/10">
+  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-2">
+    <Upload className="h-8 w-8 text-primary" strokeWidth={1.5} />
+  </div>
+  <p className="mt-2 text-sm font-semibold">{photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}</p>
+  <p className="mt-1 text-xs text-muted-foreground">Accepts JPG, PNG, PDF — up to 10MB</p>
               <input type="file" accept="image/jpeg,image/png,image/jpg,application/pdf"  
               className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
                 onChange={(e) => { const f = e.target.files?.[0] ?? null; if (!f) { setPhoto(null); setPdf(null); return; } if (f.type === "application/pdf") { setPdf(f); setPhoto(null); } else { setPhoto(f); setPdf(null); } }} />
@@ -478,7 +480,7 @@ function SolvePage() {
                     subject === s && !locked ? "border-primary bg-primary/10 text-primary" :
                     locked ? "border-border bg-card text-foreground/40 cursor-not-allowed" :
                     "border-border bg-card text-foreground/70 hover:bg-muted")}>
-                  {s}{locked && <Lock className="h-3 w-3" />}
+                  {s === "Math" ? "🧮 Math" : s === "Physics" ? "⚡ Physics" : "🧪 Chemistry"}{locked && <Lock className="h-3 w-3" />}
                 </button>
               )
             })}
@@ -518,7 +520,7 @@ function SolvePage() {
           </div>
         )}
 
-        <button disabled={!hasInput || loading} onClick={handleSolve} className="mt-10 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground shadow-md transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50">
+        <button disabled={!hasInput || loading} onClick={handleSolve} className="mt-10 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-violet-500 px-6 py-4 text-base font-semibold text-primary-foreground shadow-md shadow-primary/25 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
           {loading ? "Solving..." : "Solve it"}
         </button>
