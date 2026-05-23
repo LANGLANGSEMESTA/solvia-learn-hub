@@ -216,6 +216,9 @@ function RotatingText() {
 function MobileNav() {
   const { user } = useAuth();
   const pathname = useLocation({ select: (l) => l.pathname });
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   const navItems = [
     { to: "/solve", icon: Sparkles, label: "Solve" },
@@ -224,6 +227,8 @@ function MobileNav() {
     { to: "/history", icon: BookOpen, label: "History" },
     { to: "/profile", icon: User, label: "Profile" },
   ]
+
+  if (!mounted) return null
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/60 bg-background/95 backdrop-blur sm:hidden">
