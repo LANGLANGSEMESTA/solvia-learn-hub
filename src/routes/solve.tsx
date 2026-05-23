@@ -9,7 +9,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import {
   Sigma, ArrowRight, Keyboard, Zap, BookOpen, HelpCircle,
   Sparkles, Upload, Volume2, RefreshCw, MessageCircle, Send, Lightbulb,
-  CheckCircle2, Bookmark, Loader2, Copy, Share2, Printer, Lock,
+  CheckCircle2, Bookmark, Loader2, Copy, Share2, Printer, Lock, Star, Brain, User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp, evaluateSocraticAnswer, getDailyUsage, detectTopic, updateWeaknessTracker } from "@/lib/solve.functions";
@@ -213,6 +213,32 @@ function RotatingText() {
   return <span>{LOADING_TEXTS[idx]}</span>
 }
 
+function MobileNav() {
+  const { user } = useAuth();
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/60 bg-background/95 backdrop-blur sm:hidden">
+      <div className="flex items-center justify-around px-2 py-2">
+        <Link to="/solve" className="flex flex-col items-center gap-0.5 px-3 py-1 text-xs text-foreground/70 hover:text-foreground">
+          <Sparkles className="h-5 w-5" /><span>Solve</span>
+        </Link>
+        <Link to="/daily" className="flex flex-col items-center gap-0.5 px-3 py-1 text-xs text-foreground/70 hover:text-foreground">
+          <Star className="h-5 w-5" /><span>Daily</span>
+        </Link>
+        <Link to="/practice" className="flex flex-col items-center gap-0.5 px-3 py-1 text-xs text-foreground/70 hover:text-foreground">
+          <Brain className="h-5 w-5" /><span>Practice</span>
+        </Link>
+        <Link to="/history" className="flex flex-col items-center gap-0.5 px-3 py-1 text-xs text-foreground/70 hover:text-foreground">
+          <BookOpen className="h-5 w-5" /><span>History</span>
+        </Link>
+        {user && (
+          <Link to="/profile" className="flex flex-col items-center gap-0.5 px-3 py-1 text-xs text-foreground/70 hover:text-foreground">
+            <User className="h-5 w-5" /><span>Profile</span>
+          </Link>
+        )}
+      </div>
+    </nav>
+  )
+}
 function SolvePage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -549,6 +575,7 @@ function SolvePage() {
 
         {upgradeReason && <UpgradeModal reason={upgradeReason} onClose={() => setUpgradeReason(null)} />}
       </main>
+      <MobileNav />
     </div>
   );
 }
