@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StreakBadge } from "@/components/StreakBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { WeaknessRadar } from "@/components/WeaknessRadar";
+import { WeeklyStreak } from "@/components/WeeklyStreak";
 
 const EXAMPLES: Record<Subject, string[]> = {
   Math: [
@@ -415,6 +416,7 @@ function SolvePage() {
       <Navbar refreshKey={savedId} />
       <WelcomeModal userName={user?.user_metadata?.full_name || user?.email} />
       <main className="mx-auto w-full max-w-[680px] px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
+        {user && <WeeklyStreak userId={user.id} />}
         <div className="text-center">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary mb-4">
             <Sparkles className="h-3 w-3" />AI-powered STEM tutor
