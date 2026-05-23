@@ -595,10 +595,26 @@ function SolvePage() {
 }
 
 const MODE_STYLES = {
-  quick: { bg: "bg-amber-50 border-amber-200", activeBg: "bg-amber-100 border-amber-400 ring-2 ring-amber-200", icon: "text-amber-600" },
-  full: { bg: "bg-blue-50 border-blue-200", activeBg: "bg-blue-100 border-blue-400 ring-2 ring-blue-200", icon: "text-blue-600" },
-  socratic: { bg: "bg-emerald-50 border-emerald-200", activeBg: "bg-emerald-100 border-emerald-400 ring-2 ring-emerald-200", icon: "text-emerald-600" },
-  multi: { bg: "bg-purple-50 border-purple-200", activeBg: "bg-purple-100 border-purple-400 ring-2 ring-purple-200", icon: "text-purple-600" },
+  quick: { 
+    bg: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800", 
+    activeBg: "bg-amber-100 border-amber-400 ring-2 ring-amber-200 dark:bg-amber-900/50 dark:border-amber-500 dark:ring-amber-800", 
+    icon: "text-amber-600 dark:text-amber-400" 
+  },
+  full: { 
+    bg: "bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800", 
+    activeBg: "bg-blue-100 border-blue-400 ring-2 ring-blue-200 dark:bg-blue-900/50 dark:border-blue-500 dark:ring-blue-800", 
+    icon: "text-blue-600 dark:text-blue-400" 
+  },
+  socratic: { 
+    bg: "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800", 
+    activeBg: "bg-emerald-100 border-emerald-400 ring-2 ring-emerald-200 dark:bg-emerald-900/50 dark:border-emerald-500 dark:ring-emerald-800", 
+    icon: "text-emerald-600 dark:text-emerald-400" 
+  },
+  multi: { 
+    bg: "bg-purple-50 border-purple-200 dark:bg-purple-950/30 dark:border-purple-800", 
+    activeBg: "bg-purple-100 border-purple-400 ring-2 ring-purple-200 dark:bg-purple-900/50 dark:border-purple-500 dark:ring-purple-800", 
+    icon: "text-purple-600 dark:text-purple-400" 
+  },
 }
 
 function ModeCard({ active, locked, onClick, icon, title, desc, modeKey }: {
