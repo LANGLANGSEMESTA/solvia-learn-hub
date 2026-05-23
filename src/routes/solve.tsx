@@ -411,6 +411,9 @@ function SolvePage() {
       <WelcomeModal userName={user?.user_metadata?.full_name || user?.email} />
       <main className="mx-auto w-full max-w-[680px] px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
         <div className="text-center">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary mb-4">
+            <Sparkles className="h-3 w-3" />AI-powered STEM tutor
+          </div>
           <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">Solve a problem</h1>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">Upload, type, or snap your STEM question.</p>
           {dailyUsage && plan === "free" && (
