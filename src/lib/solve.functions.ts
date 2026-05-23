@@ -10,6 +10,8 @@ type Mode = "quick" | "full" | "socratic" | "multi";
 type Level = "kid" | "middle" | "high" | "university" | "expert";
 type Plan = "free" | "basic" | "pro";
 
+const ADMIN_EMAILS = ["irsanwu@gmail.com", "irsanwuu@gmail.com"]
+
 const LANGUAGE_RULE =
   "IMPORTANT: Detect the language of the user's problem and respond in the SAME language. If the problem is in Indonesian, respond in Indonesian. If in English, respond in English. If in pure math notation, respond in English.";
 
@@ -200,7 +202,8 @@ export const solveProblem = createServerFn({ method: "POST" })
       .eq("user_id", user!.id)
       .maybeSingle();
 
-    const plan = getPlan(subscription);
+    const isAdmin = ADMIN_EMAILS.includes(user?.email ?? "")
+    const plan: Plan = isAdmin ? "pro" : getPlan(subscription);
 
     // Subject gate
     if (!PLAN_SUBJECTS[plan].includes(data.subject)) {
@@ -317,6 +320,7 @@ export const getDailyUsage = createServerFn({ method: "POST" })
     startOfDay.setUTCHours(0, 0, 0, 0);
 
     const { data: { user } } = await supabase.auth.getUser();
+    const isAdmin = ADMIN_EMAILS.includes(user?.email ?? "")
 
     const { data: subscription } = await supabase
       .from("subscriptions")
@@ -324,7 +328,7 @@ export const getDailyUsage = createServerFn({ method: "POST" })
       .eq("user_id", user!.id)
       .maybeSingle();
 
-    const plan = getPlan(subscription);
+    const plan: Plan = isAdmin ? "pro" : getPlan(subscription);
 
     const modes = ["quick", "full", "socratic", "multi"] as const;
     const counts: Record<string, number> = {};
