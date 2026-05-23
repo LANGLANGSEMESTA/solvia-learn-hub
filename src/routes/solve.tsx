@@ -430,7 +430,8 @@ function SolvePage() {
               <Upload className="h-10 w-10 text-primary" strokeWidth={1.5} />
               <p className="mt-4 text-sm font-medium">{photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}</p>
               <p className="mt-1 text-xs text-muted-foreground">Accepts JPG, PNG, PDF — up to 10MB</p>
-              <input type="file" accept="image/jpeg,image/png,image/jpg,application/pdf" capture="environment" className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+              <input type="file" accept="image/jpeg,image/png,image/jpg,application/pdf"  
+              className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
                 onChange={(e) => { const f = e.target.files?.[0] ?? null; if (!f) { setPhoto(null); setPdf(null); return; } if (f.type === "application/pdf") { setPdf(f); setPhoto(null); } else { setPhoto(f); setPdf(null); } }} />
             </div>
           )}
