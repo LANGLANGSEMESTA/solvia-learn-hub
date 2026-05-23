@@ -609,43 +609,58 @@ function SolvePage() {
 
 const MODE_STYLES = {
   quick: { 
-    bg: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800", 
-    activeBg: "bg-amber-100 border-amber-400 ring-2 ring-amber-200 dark:bg-amber-900/50 dark:border-amber-500 dark:ring-amber-800", 
-    icon: "text-amber-600 dark:text-amber-400" 
+    icon: "ti ti-bolt",
+    emoji: "⚡",
+    color: "from-amber-400 to-orange-500",
+    bg: "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/40 dark:to-orange-950/40 dark:border-amber-800",
+    activeBg: "bg-gradient-to-br from-amber-100 to-orange-100 border-amber-400 ring-2 ring-amber-200 dark:from-amber-900/60 dark:to-orange-900/60 dark:border-amber-500",
+    iconColor: "text-amber-500",
   },
-  full: { 
-    bg: "bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800", 
-    activeBg: "bg-blue-100 border-blue-400 ring-2 ring-blue-200 dark:bg-blue-900/50 dark:border-blue-500 dark:ring-blue-800", 
-    icon: "text-blue-600 dark:text-blue-400" 
+  full: {
+    emoji: "📖",
+    color: "from-blue-400 to-indigo-500",
+    bg: "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-blue-800",
+    activeBg: "bg-gradient-to-br from-blue-100 to-indigo-100 border-blue-400 ring-2 ring-blue-200 dark:from-blue-900/60 dark:to-indigo-900/60 dark:border-blue-500",
+    iconColor: "text-blue-500",
   },
-  socratic: { 
-    bg: "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800", 
-    activeBg: "bg-emerald-100 border-emerald-400 ring-2 ring-emerald-200 dark:bg-emerald-900/50 dark:border-emerald-500 dark:ring-emerald-800", 
-    icon: "text-emerald-600 dark:text-emerald-400" 
+  socratic: {
+    emoji: "💡",
+    color: "from-emerald-400 to-teal-500",
+    bg: "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 dark:from-emerald-950/40 dark:to-teal-950/40 dark:border-emerald-800",
+    activeBg: "bg-gradient-to-br from-emerald-100 to-teal-100 border-emerald-400 ring-2 ring-emerald-200 dark:from-emerald-900/60 dark:to-teal-900/60 dark:border-emerald-500",
+    iconColor: "text-emerald-500",
   },
-  multi: { 
-    bg: "bg-purple-50 border-purple-200 dark:bg-purple-950/30 dark:border-purple-800", 
-    activeBg: "bg-purple-100 border-purple-400 ring-2 ring-purple-200 dark:bg-purple-900/50 dark:border-purple-500 dark:ring-purple-800", 
-    icon: "text-purple-600 dark:text-purple-400" 
+  multi: {
+    emoji: "🔀",
+    color: "from-purple-400 to-violet-500",
+    bg: "bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 dark:from-purple-950/40 dark:to-violet-950/40 dark:border-purple-800",
+    activeBg: "bg-gradient-to-br from-purple-100 to-violet-100 border-purple-400 ring-2 ring-purple-200 dark:from-purple-900/60 dark:to-violet-900/60 dark:border-purple-500",
+    iconColor: "text-purple-500",
   },
 }
 
-function ModeCard({ active, locked, onClick, icon, title, desc, modeKey }: {
+function ModeCard({ active, locked, onClick, title, desc, modeKey }: {
   active: boolean; locked: boolean; onClick: () => void;
-  icon: React.ReactNode; title: string; desc: string; modeKey: string
+  title: string; desc: string; modeKey: string
 }) {
-  const style = MODE_STYLES[modeKey as keyof typeof MODE_STYLES] ?? { bg: "bg-card border-border", activeBg: "border-primary ring-2 ring-primary/20", icon: "text-foreground/70" }
+  const style = MODE_STYLES[modeKey as keyof typeof MODE_STYLES]
+  if (!style) return null
   return (
     <button onClick={onClick} className={cn(
-      "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition",
-      locked ? "border-border bg-card opacity-60 cursor-not-allowed" :
-      active ? style.activeBg :
-      `${style.bg} hover:opacity-90`
+      "relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-200",
+      locked ? "border-border bg-card opacity-50 cursor-not-allowed" :
+      active ? `${style.activeBg} shadow-sm` :
+      `${style.bg} hover:shadow-sm hover:scale-[1.02]`
     )}>
-      {locked && <Lock className="absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground" />}
-      <span className={cn(locked ? "text-foreground/40" : style.icon)}>{icon}</span>
-      <span className="font-serif text-base font-semibold">{title}</span>
-      <span className="text-xs text-muted-foreground">{desc}</span>
+      {locked && <Lock className="absolute top-3 right-3 h-3.5 w-3.5 text-muted-foreground" />}
+      <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl text-xl", 
+        active ? "bg-white/60 dark:bg-black/20" : "bg-white/40 dark:bg-black/10")}>
+        {style.emoji}
+      </div>
+      <div>
+        <p className="font-semibold text-sm">{title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+      </div>
     </button>
   );
 }
