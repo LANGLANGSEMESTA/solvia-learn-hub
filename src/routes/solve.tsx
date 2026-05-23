@@ -448,9 +448,12 @@ function SolvePage() {
   </div>
   <p className="mt-2 text-sm font-semibold">{photo ? photo.name : pdf ? pdf.name : "Drop your photo or PDF here"}</p>
   <p className="mt-1 text-xs text-muted-foreground">Accepts JPG, PNG, PDF — up to 10MB</p>
-              <input type="file" accept="image/jpeg,image/png,image/jpg,application/pdf"  
-              className="mt-4 text-sm text-foreground/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
-                onChange={(e) => { const f = e.target.files?.[0] ?? null; if (!f) { setPhoto(null); setPdf(null); return; } if (f.type === "application/pdf") { setPdf(f); setPhoto(null); } else { setPhoto(f); setPdf(null); } }} />
+              <label className="mt-4 cursor-pointer inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">
+  <Upload className="h-4 w-4" />
+  {photo ? "Change file" : pdf ? "Change file" : "Choose file"}
+  <input type="file" accept="image/jpeg,image/png,image/jpg,application/pdf" className="hidden"
+    onChange={(e) => { const f = e.target.files?.[0] ?? null; if (!f) { setPhoto(null); setPdf(null); return; } if (f.type === "application/pdf") { setPdf(f); setPhoto(null); } else { setPhoto(f); setPdf(null); } }} />
+</label>
             </div>
           )}
           {tab === "type" && (
