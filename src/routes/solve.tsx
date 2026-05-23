@@ -653,13 +653,9 @@ function ModeCard({ active, locked, onClick, title, desc, modeKey }: {
       `${style.bg} hover:shadow-sm hover:scale-[1.02]`
     )}>
       {locked && <Lock className="absolute top-3 right-3 h-3.5 w-3.5 text-muted-foreground" />}
-      <div className="h-12 w-12">
-        <img 
-          src={`/icons/${modeKey}.png`} 
-          alt={title}
-          className="h-full w-full object-contain"
-          style={{ mixBlendMode: 'screen' }}
-        />
+      <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl text-xl", 
+        active ? "bg-white/60 dark:bg-black/20" : "bg-white/40 dark:bg-black/10")}>
+        {style.emoji}
       </div>
       <div>
         <p className="font-semibold text-sm">{title}</p>
