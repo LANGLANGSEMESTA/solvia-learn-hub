@@ -485,10 +485,10 @@ function SolvePage() {
         <div className="mt-8">
           <label className="mb-3 block text-sm font-medium">Mode</label>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
-            <ModeCard active={mode === "quick"} locked={isModeLocked("quick")} onClick={() => { if (isModeLocked("quick")) { setUpgradeReason("LIMIT_QUICK"); return; } setMode("quick"); }} icon={<Zap className="h-5 w-5" />} title="Quick trick" desc={getModeDesc("quick")} />
-            <ModeCard active={mode === "full"} locked={isModeLocked("full")} onClick={() => { if (isModeLocked("full")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("full"); }} icon={<BookOpen className="h-5 w-5" />} title="Full explanation" desc={getModeDesc("full")} />
-            <ModeCard active={mode === "socratic"} locked={isModeLocked("socratic")} onClick={() => { if (isModeLocked("socratic")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("socratic"); }} icon={<HelpCircle className="h-5 w-5" />} title="Socratic" desc={getModeDesc("socratic")} />
-            <ModeCard active={mode === "multi"} locked={isModeLocked("multi")} onClick={() => { if (isModeLocked("multi")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("multi"); }} icon={<Sigma className="h-5 w-5" />} title="Multi-method" desc={getModeDesc("multi")} />
+            <ModeCard active={mode === "quick"} locked={isModeLocked("quick")} onClick={() => { if (isModeLocked("quick")) { setUpgradeReason("LIMIT_QUICK"); return; } setMode("quick"); }} icon={<Zap className="h-5 w-5" />} title="Quick trick" desc={getModeDesc("quick")} modeKey="quick" />
+            <ModeCard active={mode === "full"} locked={isModeLocked("full")} onClick={() => { if (isModeLocked("full")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("full"); }} icon={<BookOpen className="h-5 w-5" />} title="Full explanation" desc={getModeDesc("full")} modeKey="full" />
+            <ModeCard active={mode === "socratic"} locked={isModeLocked("socratic")} onClick={() => { if (isModeLocked("socratic")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("socratic"); }} icon={<HelpCircle className="h-5 w-5" />} title="Socratic" desc={getModeDesc("socratic")} modeKey="socratic" />
+            <ModeCard active={mode === "multi"} locked={isModeLocked("multi")} onClick={() => { if (isModeLocked("multi")) { setUpgradeReason("LIMIT_TRIAL"); return; } setMode("multi"); }} icon={<Sigma className="h-5 w-5" />} title="Multi-method" desc={getModeDesc("multi")} modeKey="multi" />
           </div>
         </div>
 
@@ -594,14 +594,27 @@ function SolvePage() {
   );
 }
 
-function ModeCard({ active, locked, onClick, icon, title, desc }: { active: boolean; locked: boolean; onClick: () => void; icon: React.ReactNode; title: string; desc: string }) {
+const MODE_STYLES = {
+  quick: { bg: "bg-amber-50 border-amber-200", activeBg: "bg-amber-100 border-amber-400 ring-2 ring-amber-200", icon: "text-amber-600" },
+  full: { bg: "bg-blue-50 border-blue-200", activeBg: "bg-blue-100 border-blue-400 ring-2 ring-blue-200", icon: "text-blue-600" },
+  socratic: { bg: "bg-emerald-50 border-emerald-200", activeBg: "bg-emerald-100 border-emerald-400 ring-2 ring-emerald-200", icon: "text-emerald-600" },
+  multi: { bg: "bg-purple-50 border-purple-200", activeBg: "bg-purple-100 border-purple-400 ring-2 ring-purple-200", icon: "text-purple-600" },
+}
+
+function ModeCard({ active, locked, onClick, icon, title, desc, modeKey }: {
+  active: boolean; locked: boolean; onClick: () => void;
+  icon: React.ReactNode; title: string; desc: string; modeKey: string
+}) {
+  const style = MODE_STYLES[modeKey as keyof typeof MODE_STYLES] ?? { bg: "bg-card border-border", activeBg: "border-primary ring-2 ring-primary/20", icon: "text-foreground/70" }
   return (
-    <button onClick={onClick} className={cn("relative flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left transition",
-      active && !locked ? "border-primary ring-2 ring-primary/20" :
-      locked ? "border-border opacity-60 cursor-not-allowed" :
-      "border-border hover:border-primary/40 hover:bg-muted/40")}>
+    <button onClick={onClick} className={cn(
+      "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition",
+      locked ? "border-border bg-card opacity-60 cursor-not-allowed" :
+      active ? style.activeBg :
+      `${style.bg} hover:opacity-90`
+    )}>
       {locked && <Lock className="absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground" />}
-      <span className={cn(active && !locked ? "text-primary" : "text-foreground/70")}>{icon}</span>
+      <span className={cn(locked ? "text-foreground/40" : style.icon)}>{icon}</span>
       <span className="font-serif text-base font-semibold">{title}</span>
       <span className="text-xs text-muted-foreground">{desc}</span>
     </button>
