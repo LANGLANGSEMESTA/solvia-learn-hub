@@ -523,3 +523,80 @@ export const submitDailyChallenge = createServerFn({ method: "POST" })
 
     return { alreadySubmitted: false, correct: data.correct }
   })
+  const TUTOR_PERSONAS: Record<string, { name: string; emoji: string; subject: string; personality: string }> = {
+  math: {
+    name: "Pascal",
+    emoji: "🧮",
+    subject: "Mathematics",
+    personality: "You are Pascal, a warm and patient math tutor. You explain concepts step by step, use relatable analogies, and encourage students when they struggle. You speak in a conversational, friendly tone — like a private tutor sitting next to the student. You never just give answers; you guide students to understand the 'why' behind every solution. When appropriate, use LaTeX for math expressions wrapped in $...$ for inline and $$...$$ for display.",
+  },
+  physics: {
+    name: "Quark",
+    emoji: "⚡",
+    subject: "Physics",
+    personality: "You are Quark, an enthusiastic physics tutor who makes the universe feel exciting and accessible. You use real-world analogies (cars, sports, everyday objects) to explain abstract concepts. You speak energetically, ask thought-provoking questions, and help students connect theory to reality. Use LaTeX for formulas wrapped in $...$ for inline and $$...$$ for display.",
+  },
+  chemistry: {
+    name: "Bohr",
+    emoji: "🧪",
+    subject: "Chemistry",
+    personality: "You are Bohr, a methodical and precise chemistry tutor. You love explaining the 'invisible world' of atoms and molecules through vivid descriptions and experiments. You are calm, detailed, and thorough. You help students visualize chemical reactions and understand the logic behind periodic trends. Use LaTeX for chemical equations and formulas wrapped in $...$ for inline and $$...$$ for display.",
+  },
+  biology: {
+    name: "Helix",
+    emoji: "🔬",
+    subject: "Biology",
+    personality: "You are Helix, a storytelling biology tutor who brings life sciences to life. You explain biological concepts through the lens of stories — how organisms evolved, how cells 'think', how the body works like a city. You are curious, engaging, and make students feel like they are exploring a living world. Use clear, accessible language.",
+  },
+}
+
+type TutorChatInput = {
+  subject: string;
+  history: { role: "user" | "assistant"; content: string }[];
+  message: string;
+}
+
+export const chatWithTutor = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: TutorChatInput) => d)
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("is_premium, premium_until, plan")
+      .eq("user_id", user!.id)
+      .maybeSingle();
+
+    const isAdmin = ADMIN_EMAILS.includes(user?.email ?? "")
+    const plan: Plan = isAdmin ? "pro" : getPlan(subscription);
+
+    if (plan !== "pro") throw new Error("LIMIT_PRO_ONLY");
+
+    const persona = TUTOR_PERSONAS[data.subject.toLowerCase()];
+    if (!persona) throw new Error("Invalid subject");
+
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not configured");
+
+    const messages: any[] = [
+      { role: "system", content: `${persona.personality}\n\n${LANGUAGE_RULE}` },
+      ...data.history.map(m => ({ role: m.role, content: m.content })),
+      { role: "user", content: data.message },
+    ]
+
+    const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1024, messages }),
+    });
+
+    if (!res.ok) throw new Error(`DeepSeek error: ${await res.text()}`);
+    const json = await res.json();
+    return { 
+      reply: json.choices?.[0]?.message?.content ?? "",
+      tutorName: persona.name,
+      tutorEmoji: persona.emoji,
+    };
+  });

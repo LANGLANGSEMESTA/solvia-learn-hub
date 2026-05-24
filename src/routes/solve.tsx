@@ -9,7 +9,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import {
   Sigma, ArrowRight, Keyboard, Zap, BookOpen, HelpCircle,
   Sparkles, Upload, Volume2, RefreshCw, MessageCircle, Send, Lightbulb,
-  CheckCircle2, Bookmark, Loader2, Copy, Share2, Printer, Lock, Star, Brain, User,
+  CheckCircle2, Bookmark, Loader2, Copy, Share2, Printer, Lock, Star, Brain, User, GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { solveProblem, chatFollowUp, evaluateSocraticAnswer, getDailyUsage, detectTopic, updateWeaknessTracker } from "@/lib/solve.functions";
@@ -75,6 +75,7 @@ function Navbar({ refreshKey }: { refreshKey?: unknown }) {
           <Link to="/history" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">History</Link>
           <Link to="/practice" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Practice</Link>
           <Link to="/daily" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Daily</Link>
+          <Link to="/tutor" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Tutors</Link>
           {user && <Link to="/profile" className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted">Profile</Link>}
           {user && (user.email === "irsanwu@gmail.com" || user.email === "irsanwuu@gmail.com") && (
             <Link to="/admin" className="rounded-md px-3 py-2 text-sm font-medium text-primary transition hover:bg-muted">Admin</Link>
