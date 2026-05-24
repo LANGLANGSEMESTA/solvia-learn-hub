@@ -23,7 +23,7 @@ const TUTOR_INFO: Record<string, { name: string; emoji: string; color: string; g
 type Msg = { role: "user" | "assistant"; content: string }
 
 function TutorChatPage() {
-  const { subject } = useParams({ from: "/tutor/$subject" });
+  const { subject } = Route.useParams();
   const { user } = useAuth();
   const tutor = TUTOR_INFO[subject] ?? TUTOR_INFO.math;
   const callChat = useServerFn(chatWithTutor);
