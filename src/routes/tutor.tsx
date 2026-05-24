@@ -1,5 +1,4 @@
-import { createFileRoute, useNavigate, Outlet } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/use-auth";
+import { createFileRoute, useNavigate, Outlet, useMatch } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sparkles } from "lucide-react";
 
@@ -17,6 +16,9 @@ const TUTORS = [
 
 function TutorPage() {
   const navigate = useNavigate();
+  const isChildRoute = useMatch({ from: "/tutor/$subject", shouldThrow: false });
+
+  if (isChildRoute) return <Outlet />;
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,7 +60,6 @@ function TutorPage() {
           ))}
         </div>
       </main>
-      <Outlet />
     </div>
   );
 }
