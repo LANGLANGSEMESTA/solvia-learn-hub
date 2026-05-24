@@ -10,17 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
+import { Route as TutorRouteImport } from './routes/tutor'
 import { Route as SolveRouteImport } from './routes/solve'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as DailyRouteImport } from './routes/daily'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TutorSubjectRouteImport } from './routes/tutor.$subject'
 import { Route as STokenRouteImport } from './routes/s.$token'
 
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
   path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorRoute = TutorRouteImport.update({
+  id: '/tutor',
+  path: '/tutor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SolveRoute = SolveRouteImport.update({
@@ -38,6 +48,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -48,10 +63,25 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DailyRoute = DailyRouteImport.update({
+  id: '/daily',
+  path: '/daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TutorSubjectRoute = TutorSubjectRouteImport.update({
+  id: '/$subject',
+  path: '/$subject',
+  getParentRoute: () => TutorRoute,
 } as any)
 const STokenRoute = STokenRouteImport.update({
   id: '/s/$token',
@@ -61,75 +91,109 @@ const STokenRoute = STokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/daily': typeof DailyRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
+  '/practice': typeof PracticeRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/solve': typeof SolveRoute
+  '/tutor': typeof TutorRouteWithChildren
   '/upgrade': typeof UpgradeRoute
   '/s/$token': typeof STokenRoute
+  '/tutor/$subject': typeof TutorSubjectRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/daily': typeof DailyRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
+  '/practice': typeof PracticeRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/solve': typeof SolveRoute
+  '/tutor': typeof TutorRouteWithChildren
   '/upgrade': typeof UpgradeRoute
   '/s/$token': typeof STokenRoute
+  '/tutor/$subject': typeof TutorSubjectRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/daily': typeof DailyRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
+  '/practice': typeof PracticeRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/solve': typeof SolveRoute
+  '/tutor': typeof TutorRouteWithChildren
   '/upgrade': typeof UpgradeRoute
   '/s/$token': typeof STokenRoute
+  '/tutor/$subject': typeof TutorSubjectRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/daily'
     | '/history'
     | '/login'
+    | '/practice'
     | '/profile'
     | '/signup'
     | '/solve'
+    | '/tutor'
     | '/upgrade'
     | '/s/$token'
+    | '/tutor/$subject'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/daily'
     | '/history'
     | '/login'
+    | '/practice'
     | '/profile'
     | '/signup'
     | '/solve'
+    | '/tutor'
     | '/upgrade'
     | '/s/$token'
+    | '/tutor/$subject'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/daily'
     | '/history'
     | '/login'
+    | '/practice'
     | '/profile'
     | '/signup'
     | '/solve'
+    | '/tutor'
     | '/upgrade'
     | '/s/$token'
+    | '/tutor/$subject'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  DailyRoute: typeof DailyRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
+  PracticeRoute: typeof PracticeRoute
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   SolveRoute: typeof SolveRoute
+  TutorRoute: typeof TutorRouteWithChildren
   UpgradeRoute: typeof UpgradeRoute
   STokenRoute: typeof STokenRoute
 }
@@ -141,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrade'
       fullPath: '/upgrade'
       preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutor': {
+      id: '/tutor'
+      path: '/tutor'
+      fullPath: '/tutor'
+      preLoaderRoute: typeof TutorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/solve': {
@@ -164,6 +235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -178,12 +256,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/daily': {
+      id: '/daily'
+      path: '/daily'
+      fullPath: '/daily'
+      preLoaderRoute: typeof DailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/tutor/$subject': {
+      id: '/tutor/$subject'
+      path: '/$subject'
+      fullPath: '/tutor/$subject'
+      preLoaderRoute: typeof TutorSubjectRouteImport
+      parentRoute: typeof TutorRoute
     }
     '/s/$token': {
       id: '/s/$token'
@@ -195,13 +294,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface TutorRouteChildren {
+  TutorSubjectRoute: typeof TutorSubjectRoute
+}
+
+const TutorRouteChildren: TutorRouteChildren = {
+  TutorSubjectRoute: TutorSubjectRoute,
+}
+
+const TutorRouteWithChildren = TutorRoute._addFileChildren(TutorRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  DailyRoute: DailyRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
+  PracticeRoute: PracticeRoute,
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   SolveRoute: SolveRoute,
+  TutorRoute: TutorRouteWithChildren,
   UpgradeRoute: UpgradeRoute,
   STokenRoute: STokenRoute,
 }

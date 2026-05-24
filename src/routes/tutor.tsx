@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sparkles } from "lucide-react";
@@ -16,16 +16,16 @@ const TUTORS = [
 ]
 
 function TutorPage() {
-  const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <img src="/solvai-icon.png" alt="Solvai" className="h-8 w-8 rounded-lg" />
             <span className="font-serif text-xl font-semibold tracking-tight">Solvai</span>
-          </Link>
+          </div>
           <ThemeToggle />
         </div>
       </header>
@@ -41,8 +41,11 @@ function TutorPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {TUTORS.map((t) => (
-            <Link key={t.subject} to={`/tutor/${t.subject}`}
-              className={`group flex items-center gap-4 rounded-2xl border p-5 transition hover:shadow-md ${t.bg} ${t.border}`}>
+            <button
+              key={t.subject}
+              onClick={() => navigate({ to: "/tutor/$subject", params: { subject: t.subject } })}
+              className={`group flex items-center gap-4 rounded-2xl border p-5 transition hover:shadow-md w-full text-left ${t.bg} ${t.border}`}
+            >
               <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${t.color} text-2xl shadow-sm`}>
                 {t.emoji}
               </div>
@@ -51,7 +54,7 @@ function TutorPage() {
                 <p className="text-sm text-muted-foreground">{t.desc}</p>
               </div>
               <span className="text-muted-foreground transition group-hover:translate-x-1">→</span>
-            </Link>
+            </button>
           ))}
         </div>
       </main>
