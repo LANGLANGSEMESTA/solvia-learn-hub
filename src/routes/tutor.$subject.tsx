@@ -103,7 +103,7 @@ function TutorChatPage() {
               "rounded-2xl px-4 py-3 text-sm max-w-[80%]",
               m.role === "user"
                 ? "bg-primary text-primary-foreground rounded-tr-none"
-                : "bg-muted rounded-tl-none"
+                : "bg-muted rounded-tl-none overflow-x-auto"
             )}>
               <MathRenderer text={m.content} />
             </div>
