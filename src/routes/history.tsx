@@ -86,6 +86,12 @@ function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <style>{`
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`}</style>
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
@@ -148,17 +154,26 @@ function HistoryPage() {
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : items.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border p-10 text-center">
-              <p className="text-sm text-muted-foreground">
-                {filter === "bookmarked" ? "No bookmarks yet." : "No problems yet — solve your first one!"}
-              </p>
-              <Link to="/solve" className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-                Start solving
-              </Link>
-            </div>
+  <div className="rounded-2xl border border-dashed border-border p-12 text-center">
+    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+      <span className="text-3xl">{filter === "bookmarked" ? "🔖" : "🧮"}</span>
+    </div>
+    <h3 className="font-serif text-lg font-semibold">
+      {filter === "bookmarked" ? "No bookmarks yet" : "No problems yet"}
+    </h3>
+    <p className="mt-1 text-sm text-muted-foreground">
+      {filter === "bookmarked" ? "Bookmark problems you want to revisit later." : "Start solving your first STEM problem!"}
+    </p>
+    <Link to="/solve" className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-violet-500 px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition">
+      {filter === "bookmarked" ? "Browse problems" : "Solve a problem →"}
+    </Link>
+  </div>
           ) : (
-            items.map((p) => (
-              <div key={p.id} className="rounded-xl border border-border bg-card p-4">
+            items.map((p, i) => (
+  <div key={p.id} 
+    className="rounded-xl border border-border bg-card p-4 transition-all"
+    style={{ animationDelay: `${i * 50}ms`, animation: "fadeIn 0.3s ease forwards", opacity: 0 }}
+  >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
