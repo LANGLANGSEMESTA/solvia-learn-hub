@@ -41,7 +41,7 @@ function TutorPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {TUTORS.map((t) => (
-            <Link key={t.subject} to="/tutor/$subject" params={{ subject: t.subject }}
+            <Link key={t.subject} to={`/tutor/${t.subject}`}
               className={`group flex items-center gap-4 rounded-2xl border p-5 transition hover:shadow-md ${t.bg} ${t.border}`}>
               <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${t.color} text-2xl shadow-sm`}>
                 {t.emoji}
