@@ -24,12 +24,8 @@ export const getUsers = createServerFn({ method: "POST" })
     await requireAdmin(supabase);
 
     const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-    const { data: subs } = await supabaseAdmin
-      .from("subscriptions")
-      .select("*");
-    const { data: problems } = await supabaseAdmin
-      .from("problems")
-      .select("user_id")
+    const { data: subs } = await supabaseAdmin.from("subscriptions").select("*");
+    const { data: problems } = await supabaseAdmin.from("problems").select("user_id");
 
     const subsMap = Object.fromEntries((subs || []).map(s => [s.user_id, s]));
     const problemCount = (problems || []).reduce((acc: any, p: any) => {
@@ -43,6 +39,7 @@ export const getUsers = createServerFn({ method: "POST" })
       created_at: u.created_at,
       last_sign_in: u.last_sign_in_at,
       is_premium: subsMap[u.id]?.is_premium || false,
+      plan: subsMap[u.id]?.plan || "free",
       premium_until: subsMap[u.id]?.premium_until || null,
       problem_count: problemCount[u.id] || 0,
     }));
@@ -50,13 +47,20 @@ export const getUsers = createServerFn({ method: "POST" })
 
 export const updateUserPremium = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { userId: string; isPremium: boolean; months?: number }) => d)
+  .inputValidator((d: { 
+    userId: string; 
+    isPremium: boolean; 
+    months?: number;
+    plan?: "free" | "basic" | "pro";
+    billing?: "monthly" | "yearly";
+  }) => d)
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     await requireAdmin(supabase);
 
+    const months = data.billing === "yearly" ? 12 : (data.months || 1);
     const premiumUntil = data.isPremium
-      ? new Date(Date.now() + (data.months || 1) * 30 * 24 * 60 * 60 * 1000).toISOString()
+      ? new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toISOString()
       : null;
 
     await supabaseAdmin
@@ -64,6 +68,7 @@ export const updateUserPremium = createServerFn({ method: "POST" })
       .upsert({
         user_id: data.userId,
         is_premium: data.isPremium,
+        plan: data.isPremium ? (data.plan || "basic") : "free",
         premium_until: premiumUntil,
         updated_at: new Date().toISOString(),
       }, { onConflict: "user_id" });
