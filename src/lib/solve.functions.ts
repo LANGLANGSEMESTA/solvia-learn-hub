@@ -625,7 +625,7 @@ export const chatWithTutor = createServerFn({ method: "POST" })
     const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: MODEL, max_tokens: 1024, messages }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 4096, messages }),
     });
 
     if (!res.ok) throw new Error(`DeepSeek error: ${await res.text()}`);
