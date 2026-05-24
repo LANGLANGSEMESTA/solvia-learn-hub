@@ -9,10 +9,10 @@ export const Route = createFileRoute("/tutor")({
 });
 
 const TUTORS = [
-  { subject: "math", name: "Pascal", emoji: "🧮", desc: "Patient & step-by-step", color: "from-blue-500 to-indigo-600", bg: "bg-blue-50 dark:bg-blue-950/30", border: "border-blue-200 dark:border-blue-800" },
-  { subject: "physics", name: "Quark", emoji: "⚡", desc: "Energetic & real-world", color: "from-amber-500 to-orange-600", bg: "bg-amber-50 dark:bg-amber-950/30", border: "border-amber-200 dark:border-amber-800" },
-  { subject: "chemistry", name: "Bohr", emoji: "🧪", desc: "Methodical & precise", color: "from-emerald-500 to-teal-600", bg: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-200 dark:border-emerald-800" },
-  { subject: "biology", name: "Helix", emoji: "🔬", desc: "Storytelling & vivid", color: "from-rose-500 to-pink-600", bg: "bg-rose-50 dark:bg-rose-950/30", border: "border-rose-200 dark:border-rose-800" },
+  { subject: "math", name: "Pascal", emoji: "🧮", desc: "Mathematics · Patient & step-by-step", ... },
+  { subject: "physics", name: "Quark", emoji: "⚡", desc: "Physics · Energetic & real-world", ... },
+  { subject: "chemistry", name: "Bohr", emoji: "🧪", desc: "Chemistry · Methodical & precise", ... },
+  { subject: "biology", name: "Helix", emoji: "🔬", desc: "Biology · Storytelling & vivid", ... },
 ]
 
 function TutorPage() {
